@@ -3,6 +3,33 @@ from productos.models import Producto
 from ventas.models import Venta
 from django.contrib.auth.models import User
 from django.db.models import Sum, Q
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+#from django.contrib.auth.decorators import login_required
+
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            return redirect('dashboard')
+        else:
+            messages.error(request, 'Usuario o contraseña incorrectos')
+
+    return render(request, 'login.html')
+
+
+#@login_required(login_url='login')
+def dashboard(request):
+    return render(request, 'dashboard.html')
 
 def dashboard(request):
     query = request.GET.get('q', '')
@@ -40,3 +67,6 @@ def dashboard(request):
         'total_ventas': total_ventas,
         'total_clientes': total_clientes,
     })
+
+def login_view(request):
+    return render(request, 'login.html')
