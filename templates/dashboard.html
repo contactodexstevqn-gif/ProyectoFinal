@@ -83,10 +83,15 @@
                 <i class='bx bx-menu'></i>
             </button>
 
-            <div class="search-box">
+            <form method="GET" action="{% url 'dashboard' %}" class="search-box">
                 <i class='bx bx-search'></i>
-                <input type="text" placeholder="Buscar prendas, clientes o ventas...">
-            </div>
+                <input 
+                    type="text" 
+                    name="q" 
+                    value="{{ query }}" 
+                    placeholder="Buscar prendas, clientes o ventas..."
+                >
+            </form>
 
             <div class="filters d-none d-md-flex">
                 <select class="form-select">
@@ -109,6 +114,10 @@
                     <option>Mayor precio</option>
                 </select>
             </div>
+
+            <button class="theme-toggle" id="themeToggle" type="button" aria-label="Cambiar modo">
+                <i class='bx bx-moon'></i>
+            </button>
 
             <div class="admin-profile">
                 <div class="admin-avatar">A</div>
@@ -137,7 +146,7 @@
                     Nueva venta
                 </a>
 
-                <a href="#" class="btn btn-primary-custom">
+                <a href="/productos/agregar/" class="btn btn-primary-custom">
                     <i class='bx bx-plus'></i>
                     Agregar producto
                 </a>
@@ -214,6 +223,7 @@
                                     <th>Categoría</th>
                                     <th>Precio</th>
                                     <th>Stock</th>
+                                    <th>Vendidos</th>
                                 </tr>
                             </thead>
 
@@ -221,9 +231,10 @@
                                 {% for producto in productos %}
                                     <tr>
                                         <td>{{ producto.nombre }}</td>
-                                        <td>{{ producto.categoria }}</td>
+                                        <td>{{ producto.categoria.nombre }}</td>
                                         <td>${{ producto.precio }}</td>
                                         <td>{{ producto.stock }}</td>
+                                        <td>{{ producto.total_vendidos|default:"0" }}</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
@@ -244,13 +255,17 @@
                     <i class='bx bx-receipt panel-icon'></i>
                 </div>
 
-                {% if ventas %}
+                {% if ventas_recientes %}
                     <div class="sales-list">
-                        {% for venta in ventas %}
+                        {% for venta in ventas_recientes %}
                             <div class="sale-item">
                                 <div>
                                     <strong>Venta #{{ venta.id }}</strong>
                                     <span>{{ venta.fecha }}</span>
+
+                                    {% if venta.producto %}
+                                        <small>{{ venta.producto.nombre }}</small>
+                                    {% endif %}
                                 </div>
 
                                 <p>${{ venta.total }}</p>

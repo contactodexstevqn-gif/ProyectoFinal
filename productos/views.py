@@ -1,13 +1,12 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
-#from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required
 import json
 
 from .forms import ProductoForm, CategoriaForm
 from .models import Categoria
 
-
-#@login_required
+# @login_required(login_url='login')
 def agregar_producto(request):
     if request.method == 'POST':
         form = ProductoForm(request.POST)
@@ -22,8 +21,7 @@ def agregar_producto(request):
         'form': form
     })
 
-
-#@login_required
+# @login_required(login_url='login')
 def agregar_categoria(request):
     categorias = Categoria.objects.all()
 
@@ -42,6 +40,7 @@ def agregar_categoria(request):
     })
 
 
+# @login_required(login_url='login')
 def crear_categoria(request):
     if request.method == 'POST':
         data = json.loads(request.body)

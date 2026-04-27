@@ -19,7 +19,25 @@
     --border: #e5e7eb;
     --bg: #f8fafc;
     --white: #ffffff;
+    --card: #ffffff;
+    --input-bg: #f9fafb;
+    --hover-bg: #f3f4f6;
     --shadow: 0 18px 35px rgba(17, 24, 39, 0.08);
+}
+
+body.dark-mode {
+    --primary: #f9fafb;
+    --secondary: #d1d5db;
+    --text: #f9fafb;
+    --muted: #9ca3af;
+    --border: #374151;
+    --bg: #0f172a;
+    --white: #111827;
+    --card: #111827;
+    --input-bg: #1f2937;
+    --hover-bg: #1f2937;
+    --soft-accent: rgba(212, 20, 115, 0.18);
+    --shadow: 0 18px 35px rgba(0, 0, 0, 0.35);
 }
 
 body {
@@ -27,6 +45,7 @@ body {
     background: var(--bg);
     color: var(--text);
     overflow-x: hidden;
+    transition: background 0.25s ease, color 0.25s ease;
 }
 
 .dashboard-layout {
@@ -36,7 +55,7 @@ body {
 
 .sidebar {
     width: 280px;
-    background: var(--white);
+    background: var(--card);
     border-right: 1px solid var(--border);
     padding: 24px 18px;
     position: fixed;
@@ -105,12 +124,12 @@ body {
 
 .menu-link i {
     font-size: 22px;
-    color: #6b7280;
+    color: var(--muted);
     transition: 0.25s ease;
 }
 
 .menu-link:hover {
-    background: #f3f4f6;
+    background: var(--hover-bg);
     color: var(--accent);
 }
 
@@ -131,7 +150,7 @@ body {
     text-transform: uppercase;
     font-size: 12px;
     font-weight: 800;
-    color: #9ca3af;
+    color: var(--muted);
     margin: 24px 12px 8px;
 }
 
@@ -143,7 +162,7 @@ body {
 
 .topbar {
     min-height: 86px;
-    background: var(--white);
+    background: var(--card);
     border: 1px solid var(--border);
     border-radius: 24px;
     box-shadow: 0 10px 25px rgba(17, 24, 39, 0.04);
@@ -177,7 +196,7 @@ body {
     flex: 1;
     height: 52px;
     border: 1px solid var(--border);
-    background: #f9fafb;
+    background: var(--input-bg);
     border-radius: 14px;
     display: flex;
     align-items: center;
@@ -189,7 +208,7 @@ body {
 .search-box:focus-within {
     border-color: var(--accent);
     box-shadow: 0 0 0 4px rgba(212, 20, 115, 0.1);
-    background: var(--white);
+    background: var(--card);
 }
 
 .search-box i {
@@ -206,6 +225,10 @@ body {
     color: var(--text);
 }
 
+.search-box input::placeholder {
+    color: var(--muted);
+}
+
 .filters {
     gap: 14px;
 }
@@ -217,11 +240,37 @@ body {
     border: 1px solid var(--border);
     box-shadow: none;
     font-weight: 600;
+    background-color: var(--input-bg);
+    color: var(--text);
 }
 
 .filters .form-select:focus {
     border-color: var(--accent);
     box-shadow: 0 0 0 4px rgba(212, 20, 115, 0.1);
+}
+
+.theme-toggle {
+    width: 48px;
+    height: 48px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--input-bg);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    transition: 0.25s ease;
+    flex-shrink: 0;
+}
+
+.theme-toggle:hover {
+    background: var(--soft-accent);
+    transform: translateY(-2px);
+}
+
+.theme-toggle i {
+    color: var(--accent);
 }
 
 .admin-profile {
@@ -306,17 +355,17 @@ body {
 
 .btn-primary-custom {
     background: var(--accent);
-    color: var(--white);
+    color: #ffffff;
     border: 1px solid var(--accent);
 }
 
 .btn-primary-custom i {
-    color: var(--white);
+    color: #ffffff;
 }
 
 .btn-primary-custom:hover {
     background: var(--accent-dark);
-    color: var(--white);
+    color: #ffffff;
     transform: translateY(-2px);
     box-shadow: 0 12px 22px rgba(212, 20, 115, 0.25);
 }
@@ -324,7 +373,7 @@ body {
 .btn-outline-custom {
     color: var(--accent);
     border: 1px solid var(--accent);
-    background: var(--white);
+    background: var(--card);
 }
 
 .btn-outline-custom i {
@@ -348,7 +397,7 @@ body {
 }
 
 .stat-card {
-    background: var(--white);
+    background: var(--card);
     border: 1px solid var(--border);
     border-radius: 20px;
     padding: 26px;
@@ -426,7 +475,7 @@ body {
 }
 
 .panel-card {
-    background: var(--white);
+    background: var(--card);
     border: 1px solid var(--border);
     border-radius: 22px;
     padding: 26px;
@@ -476,6 +525,8 @@ body {
 
 .table {
     margin-bottom: 0;
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--text);
 }
 
 .table thead th {
@@ -489,6 +540,7 @@ body {
     padding: 16px 8px;
     color: var(--text);
     font-weight: 600;
+    border-bottom: 1px solid var(--border);
 }
 
 .sales-list {
@@ -501,7 +553,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #f9fafb;
+    background: var(--input-bg);
     border-radius: 14px;
     padding: 14px;
 }
@@ -538,7 +590,7 @@ body {
 }
 
 .history-btn:hover {
-    background: #fbd0e5;
+    background: rgba(212, 20, 115, 0.25);
     color: var(--accent-dark);
 }
 
@@ -552,6 +604,23 @@ body {
 
 .sidebar-overlay.active {
     display: block;
+}
+
+body.dark-mode .topbar,
+body.dark-mode .sidebar,
+body.dark-mode .panel-card,
+body.dark-mode .stat-card {
+    background: var(--card);
+}
+
+body.dark-mode .table {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--text);
+    --bs-table-border-color: var(--border);
+}
+
+body.dark-mode .form-select {
+    background-image: none;
 }
 
 @media (max-width: 1200px) {
@@ -630,6 +699,12 @@ body {
 
     .search-box {
         height: 48px;
+    }
+
+    .theme-toggle {
+        width: 44px;
+        height: 44px;
+        font-size: 22px;
     }
 
     .admin-avatar {
