@@ -18,18 +18,36 @@ class CategoriaForm(forms.ModelForm):
 class ProductoForm(forms.ModelForm):
     class Meta:
         model = Producto
-        fields = ['nombre', 'categoria', 'talla', 'color', 'precio', 'stock', 'imagen']
+        fields = [
+            'nombre',
+            'categoria',
+            'talla',
+            'color',
+            'precio',
+            'stock',
+            'imagen'
+        ]
 
         widgets = {
-            'nombre': forms.TextInput(attrs={'class': 'form-control'}),
+            'nombre': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Nombre del producto'
+            }),
 
-            'categoria': forms.Select(attrs={'class': 'form-control'}),
+            'categoria': forms.Select(attrs={
+                'class': 'form-select'
+            }),
 
-            'talla': forms.TextInput(attrs={'class': 'form-control'}),
+            'talla': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: S, M, L'
+            }),
 
-            'color': forms.TextInput(attrs={'class': 'form-control'}),
+            'color': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: Negro, Rosado, Blanco'
+            }),
 
-            
             'precio': forms.NumberInput(attrs={
                 'class': 'form-control',
                 'min': '1000',
@@ -37,12 +55,25 @@ class ProductoForm(forms.ModelForm):
                 'placeholder': 'Ej: 50000'
             }),
 
-            
             'stock': forms.NumberInput(attrs={
                 'class': 'form-control',
                 'min': '0',
-                'step': '1'
+                'step': '1',
+                'placeholder': 'Cantidad disponible'
             }),
 
-            'imagen': forms.TextInput(attrs={'class': 'form-control'}),
+            'imagen': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'URL de la imagen'
+            }),
+        }
+
+        labels = {
+            'nombre': 'Nombre',
+            'categoria': 'Categoría',
+            'talla': 'Talla',
+            'color': 'Color',
+            'precio': 'Precio',
+            'stock': 'Stock',
+            'imagen': 'Imagen'
         }

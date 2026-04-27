@@ -1,9 +1,43 @@
-from django.shortcuts import render
-from productos.models import Producto
-from ventas.models import Venta
+#BACKEND ES LA APP PRINCIPAL (DASHBOARD)
+
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db.models import Sum, Q
 
+from productos.models import Producto
+from ventas.models import Venta
+
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        remember = request.POST.get('remember')
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+
+            if remember:
+                request.session.set_expiry(1209600)
+            else:
+                request.session.set_expiry(0)
+
+            return redirect('dashboard')
+        else:
+            messages.error(request, 'Usuario o contraseña incorrectos')
+
+    return render(request, 'login.html')
+
+
+@login_required(login_url='login')
 def dashboard(request):
     query = request.GET.get('q', '')
 
