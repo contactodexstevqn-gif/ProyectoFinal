@@ -8,16 +8,18 @@
     --primary: #1f2937;
     --primary-dark: #111827;
     --secondary: #374151;
-    --accent: #2563eb;
+    --accent: #d41473;
+    --accent-dark: #a80f5b;
     --text: #111827;
     --muted: #6b7280;
     --border: #d1d5db;
     --white: #ffffff;
+    --card: rgba(255, 255, 255, 0.96);
     --danger-bg: #fee2e2;
     --danger-text: #991b1b;
     --success-bg: #dcfce7;
     --success-text: #166534;
-    --shadow: 0 20px 45px rgba(17, 24, 39, 0.15);
+    --shadow: 0 20px 45px rgba(17, 24, 39, 0.18);
 }
 
 body {
@@ -60,9 +62,9 @@ body {
 }
 
 .shape-3 {
-    width: 170px;
-    height: 170px;
-    background: #2563eb;
+    width: 180px;
+    height: 180px;
+    background: #d41473;
     top: 65%;
     left: 18%;
     animation-delay: 4s;
@@ -90,11 +92,11 @@ body {
 
 .login-card {
     width: 100%;
-    max-width: 460px;
-    background: rgba(255, 255, 255, 0.96);
+    max-width: 480px;
+    background: var(--card);
     backdrop-filter: blur(14px);
     border: 1px solid rgba(255, 255, 255, 0.45);
-    border-radius: 26px;
+    border-radius: 28px;
     padding: 36px;
     box-shadow: var(--shadow);
     animation: fadeUp 0.6s ease;
@@ -114,31 +116,36 @@ body {
 
 .login-brand {
     display: flex;
+    flex-direction: column;
     align-items: center;
     gap: 14px;
-    margin-bottom: 28px;
+    text-align: center;
+    margin-bottom: 26px;
 }
 
-.brand-icon {
-    width: 58px;
-    height: 58px;
-    border-radius: 18px;
-    background: linear-gradient(135deg, var(--primary-dark), var(--secondary));
+.logo-wrapper {
     display: flex;
     justify-content: center;
     align-items: center;
-    color: var(--white);
-    font-size: 28px;
-    box-shadow: 0 10px 25px rgba(17, 24, 39, 0.28);
 }
 
-.login-brand h1 {
+.company-logo {
+    width: 155px;
+    height: 155px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 4px solid #f3f4f6;
+    background: #ffffff;
+    box-shadow: 0 12px 28px rgba(17, 24, 39, 0.22);
+}
+
+.brand-text h1 {
     font-size: 30px;
     color: var(--text);
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
 
-.login-brand p {
+.brand-text p {
     color: var(--muted);
     font-size: 15px;
 }
@@ -192,6 +199,7 @@ body {
     left: 14px;
     font-size: 20px;
     color: #6b7280;
+    z-index: 2;
 }
 
 .input-box input {
@@ -200,7 +208,7 @@ body {
     border: 2px solid var(--border);
     border-radius: 16px;
     outline: none;
-    padding: 0 48px 0 44px;
+    padding: 0 56px 0 44px;
     font-size: 15px;
     color: var(--text);
     background: #ffffff;
@@ -209,23 +217,35 @@ body {
 
 .input-box input:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    box-shadow: 0 0 0 4px rgba(212, 20, 115, 0.12);
 }
 
 .toggle-password {
     position: absolute;
-    right: 12px;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
     border: none;
     background: transparent;
     cursor: pointer;
-    font-size: 22px;
     color: #6b7280;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 0;
+    z-index: 3;
 }
 
-.toggle-password:hover {
+.toggle-password i {
+    font-size: 22px;
+    line-height: 1;
+    color: #6b7280;
+    transition: 0.25s ease;
+}
+
+.toggle-password:hover i {
     color: var(--accent);
 }
 
@@ -259,7 +279,7 @@ body {
 }
 
 .forgot-link:hover {
-    color: #1d4ed8;
+    color: var(--accent-dark);
     text-decoration: underline;
 }
 
@@ -280,13 +300,22 @@ body {
     box-shadow: 0 12px 22px rgba(17, 24, 39, 0.25);
 }
 
+.login-btn i {
+    color: var(--white);
+    font-size: 21px;
+}
+
 .login-btn:hover {
     transform: translateY(-2px);
     background: linear-gradient(135deg, #0f172a, #1f2937);
     box-shadow: 0 16px 28px rgba(17, 24, 39, 0.35);
 }
 
-.register-text {
+.login-btn:active {
+    transform: scale(0.98);
+}
+
+.access-text {
     text-align: center;
     color: var(--muted);
     font-size: 14px;
@@ -305,27 +334,21 @@ body {
     }
 
     .login-card {
-        max-width: 420px;
+        max-width: 430px;
         padding: 30px;
         border-radius: 24px;
     }
 
-    .login-brand {
-        gap: 12px;
+    .company-logo {
+        width: 130px;
+        height: 130px;
     }
 
-    .brand-icon {
-        width: 52px;
-        height: 52px;
-        font-size: 25px;
-        border-radius: 16px;
-    }
-
-    .login-brand h1 {
+    .brand-text h1 {
         font-size: 27px;
     }
 
-    .login-brand p {
+    .brand-text p {
         font-size: 14px;
     }
 
@@ -362,22 +385,20 @@ body {
     }
 
     .login-brand {
-        flex-direction: column;
-        text-align: center;
         margin-bottom: 24px;
     }
 
-    .brand-icon {
-        width: 56px;
-        height: 56px;
+    .company-logo {
+        width: 110px;
+        height: 110px;
+        border: 3px solid #f3f4f6;
+    }
+
+    .brand-text h1 {
         font-size: 26px;
     }
 
-    .login-brand h1 {
-        font-size: 26px;
-    }
-
-    .login-brand p {
+    .brand-text p {
         font-size: 14px;
     }
 
@@ -392,7 +413,7 @@ body {
     .input-box input {
         height: 50px;
         padding-left: 42px;
-        padding-right: 44px;
+        padding-right: 52px;
         font-size: 14px;
         border-radius: 14px;
     }
@@ -403,7 +424,12 @@ body {
     }
 
     .toggle-password {
-        right: 10px;
+        right: 12px;
+        width: 32px;
+        height: 32px;
+    }
+
+    .toggle-password i {
         font-size: 21px;
     }
 
@@ -415,7 +441,7 @@ body {
 
     .forgot-link,
     .remember-me,
-    .register-text {
+    .access-text {
         font-size: 13px;
     }
 
@@ -432,13 +458,13 @@ body {
         padding: 22px 16px;
     }
 
-    .login-brand h1 {
-        font-size: 24px;
+    .company-logo {
+        width: 95px;
+        height: 95px;
     }
 
-    .brand-icon {
-        width: 52px;
-        height: 52px;
+    .brand-text h1 {
+        font-size: 24px;
     }
 
     .input-box input {

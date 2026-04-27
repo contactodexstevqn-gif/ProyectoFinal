@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar sesión</title>
+    <title>Iniciar sesión | Fucsia Boutique</title>
 
     <link rel="stylesheet" href="{% static 'login.css' %}">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
@@ -21,13 +21,13 @@
         <section class="login-card">
 
             <div class="login-brand">
-                <div class="brand-icon">
-                    <i class='bx bx-shield-quarter'></i>
+                <div class="logo-wrapper">
+                    <img src="{% static 'img/logo.png' %}" alt="Logo Fucsia Boutique" class="company-logo">
                 </div>
 
-                <div>
+                <div class="brand-text">
                     <h1>Bienvenido</h1>
-                    <p>Inicia sesión para continuar</p>
+                    <p>Accede al sistema de Fucsia Boutique</p>
                 </div>
             </div>
 
@@ -54,6 +54,7 @@
                             id="username"
                             name="username"
                             placeholder="Ingresa tu usuario"
+                            autocomplete="username"
                             required
                         >
                     </div>
@@ -68,10 +69,11 @@
                             id="password"
                             name="password"
                             placeholder="Ingresa tu contraseña"
+                            autocomplete="current-password"
                             required
                         >
 
-                        <button type="button" class="toggle-password" id="togglePassword">
+                        <button type="button" class="toggle-password" id="togglePassword" aria-label="Mostrar contraseña">
                             <i class='bx bx-show'></i>
                         </button>
                     </div>
@@ -91,7 +93,7 @@
                     <span>Iniciar sesión</span>
                 </button>
 
-                <p class="register-text">
+                <p class="access-text">
                     Acceso exclusivo para usuarios autorizados por el administrador.
                 </p>
             </form>

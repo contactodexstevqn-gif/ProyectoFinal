@@ -10,5 +10,10 @@ if (togglePassword && passwordInput) {
         togglePassword.innerHTML = isPassword
             ? "<i class='bx bx-hide'></i>"
             : "<i class='bx bx-show'></i>";
+
+        togglePassword.setAttribute(
+            "aria-label",
+            isPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+        );
     });
 }
