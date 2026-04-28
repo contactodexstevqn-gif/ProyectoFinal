@@ -34,7 +34,7 @@
                     <span>Dashboard</span>
                 </a>
 
-                <a href="{% url 'dashboard' %}" class="menu-link">
+                <a href="#" class="menu-link">
                     <i class='bx bx-package'></i>
                     <span>Productos</span>
                 </a>
@@ -64,21 +64,16 @@
                     <span>Reportes</span>
                 </a>
 
-                <p class="menu-title">Administración</p>
+                <p class="menu-title">ADMINISTRACIÓN</p>
 
-                <a href="#" class="menu-link">
-                    <i class='bx bx-user-cog'></i>
+                <a href="{% url 'usuarios' %}" class="menu-link">
+                    <i class='bx bx-user'></i>
                     <span>Usuarios</span>
                 </a>
 
                 <a href="#" class="menu-link">
                     <i class='bx bx-cog'></i>
                     <span>Configuración</span>
-                </a>
-
-                <a href="{% url 'logout' %}" class="menu-link logout-link">
-                    <i class='bx bx-log-out'></i>
-                    <span>Cerrar sesión</span>
                 </a>
             </nav>
         </aside>
@@ -130,9 +125,9 @@
                         <strong>{{ request.user.username }}</strong>
 
                         {% if request.user.is_superuser %}
-                        <span>Administrador</span>
+                            <span>Administrador</span>
                         {% else %}
-                        <span>Vendedor</span>
+                            <span>Vendedor</span>
                         {% endif %}
                     </section>
                 </section>
@@ -216,41 +211,64 @@
                 <article class="panel-card products-panel">
                     <header class="panel-header">
                         <section>
-                            <h2>Todos los productos</h2>
-                            <p>Inventario general registrado</p>
+                            <h2>Top 3 productos vendidos</h2>
+                            <p>Productos con mayor cantidad de ventas registradas</p>
                         </section>
 
-                        <span class="badge-custom">Productos</span>
+                        <span class="badge-custom">Top ventas</span>
                     </header>
 
                     {% if productos %}
-                    <section class="table-responsive">
-                        <table class="table align-middle">
-                            <thead>
-                                <tr>
-                                    <th>Producto</th>
-                                    <th>Categoría</th>
-                                    <th>Precio</th>
-                                    <th>Stock</th>
-                                    <th>Vendidos</th>
-                                </tr>
-                            </thead>
+                        <section class="table-responsive">
+                            <table class="table align-middle top-products-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Producto</th>
+                                        <th>Categoría</th>
+                                        <th>Precio</th>
+                                        <th>Stock</th>
+                                        <th>Vendidos</th>
+                                    </tr>
+                                </thead>
 
-                            <tbody>
-                                {% for producto in productos %}
-                                <tr>
-                                    <td>{{ producto.nombre }}</td>
-                                    <td>{{ producto.categoria.nombre }}</td>
-                                    <td>${{ producto.precio }}</td>
-                                    <td>{{ producto.stock }}</td>
-                                    <td>{{ producto.total_vendidos|default:"0" }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </section>
+                                <tbody>
+                                    {% for producto in productos %}
+                                    <tr>
+                                        <td>
+                                            <span class="top-number">{{ forloop.counter }}</span>
+                                        </td>
+
+                                        <td>
+                                            <strong>{{ producto.nombre }}</strong>
+                                        </td>
+
+                                        <td>{{ producto.categoria.nombre }}</td>
+
+                                        <td>
+                                            <span class="price-text">${{ producto.precio }}</span>
+                                        </td>
+
+                                        <td>
+                                            {% if producto.stock <= 5 %}
+                                                <span class="stock-badge stock-low">{{ producto.stock }}</span>
+                                            {% else %}
+                                                <span class="stock-badge stock-ok">{{ producto.stock }}</span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            <span class="sold-badge">
+                                                {{ producto.total_vendidos|default:"0" }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </section>
                     {% else %}
-                    <p class="empty-text">No hay productos registrados.</p>
+                        <p class="empty-text">No hay productos vendidos registrados.</p>
                     {% endif %}
                 </article>
 
@@ -265,24 +283,24 @@
                     </header>
 
                     {% if ventas_recientes %}
-                    <section class="sales-list">
-                        {% for venta in ventas_recientes %}
-                        <article class="sale-item">
-                            <section>
-                                <strong>Venta #{{ venta.id }}</strong>
-                                <span>{{ venta.fecha }}</span>
+                        <section class="sales-list">
+                            {% for venta in ventas_recientes %}
+                            <article class="sale-item">
+                                <section>
+                                    <strong>Venta #{{ venta.id }}</strong>
+                                    <span>{{ venta.fecha }}</span>
 
-                                {% if venta.producto %}
-                                <small>{{ venta.producto.nombre }}</small>
-                                {% endif %}
-                            </section>
+                                    {% if venta.producto %}
+                                        <small>{{ venta.producto.nombre }}</small>
+                                    {% endif %}
+                                </section>
 
-                            <p>${{ venta.total }}</p>
-                        </article>
-                        {% endfor %}
-                    </section>
+                                <p>${{ venta.total }}</p>
+                            </article>
+                            {% endfor %}
+                        </section>
                     {% else %}
-                    <p class="empty-text">No hay ventas registradas.</p>
+                        <p class="empty-text">No hay ventas registradas.</p>
                     {% endif %}
 
                     <a href="#" class="history-btn">Ver historial completo</a>
