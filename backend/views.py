@@ -1,4 +1,4 @@
-#BACKEND ES LA APP PRINCIPAL (DASHBOARD)
+# BACKEND ES LA APP PRINCIPAL (DASHBOARD)
 
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
@@ -53,7 +53,7 @@ def dashboard(request):
 
     productos = productos.annotate(
         total_vendidos=Sum('venta__cantidad')
-    ).distinct().order_by('-total_vendidos', 'nombre')
+    ).distinct().order_by('-total_vendidos', 'nombre')[:3]
 
     total_productos = Producto.objects.count()
     stock_bajo = Producto.objects.filter(stock__lte=5).count()
@@ -73,4 +73,20 @@ def dashboard(request):
         'stock_bajo': stock_bajo,
         'total_ventas': total_ventas,
         'total_clientes': total_clientes,
+    })
+
+
+@login_required(login_url='login')
+def usuarios(request):
+    usuarios = User.objects.all().order_by('-date_joined')
+
+    total_usuarios = usuarios.count()
+    usuarios_activos = usuarios.filter(is_active=True).count()
+    usuarios_inactivos = usuarios.filter(is_active=False).count()
+
+    return render(request, 'usuarios.html', {
+        'usuarios': usuarios,
+        'total_usuarios': total_usuarios,
+        'usuarios_activos': usuarios_activos,
+        'usuarios_inactivos': usuarios_inactivos,
     })

@@ -1,0 +1,295 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuarios | Fucsia Boutique</title>
+
+    <link rel="stylesheet" href="{% static 'usuarios.css' %}">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
+    <script src="{% static 'usuarios.js' %}" defer></script>
+</head>
+
+<body>
+
+    <section class="dashboard-layout">
+
+        <aside class="sidebar" id="sidebar">
+            <header class="brand">
+                <figure class="brand-logo">
+                    <img src="{% static 'img/logo.png' %}" alt="Logo Fucsia Boutique">
+                </figure>
+
+                <section class="brand-info">
+                    <h2>Fucsia<br>Boutique</h2>
+                    <p>Gestión comercial</p>
+                </section>
+            </header>
+
+            <nav class="sidebar-menu">
+                <a href="{% url 'dashboard' %}" class="menu-link">
+                    <i class='bx bx-grid-alt'></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="#" class="menu-link">
+                    <i class='bx bx-package'></i>
+                    <span>Productos</span>
+                </a>
+
+                <a href="#" class="menu-link">
+                    <i class='bx bx-bar-chart-alt-2'></i>
+                    <span>Inventario</span>
+                </a>
+
+                <a href="{% url 'nueva_venta' %}" class="menu-link">
+                    <i class='bx bx-cart'></i>
+                    <span>Ventas</span>
+                </a>
+
+                <a href="#" class="menu-link">
+                    <i class='bx bx-group'></i>
+                    <span>Clientes</span>
+                </a>
+
+                <a href="#" class="menu-link">
+                    <i class='bx bx-time-five'></i>
+                    <span>Historial</span>
+                </a>
+
+                <a href="#" class="menu-link">
+                    <i class='bx bx-line-chart'></i>
+                    <span>Reportes</span>
+                </a>
+
+                <p class="menu-title">ADMINISTRACIÓN</p>
+
+                <a href="{% url 'usuarios' %}" class="menu-link active">
+                    <i class='bx bx-user'></i>
+                    <span>Usuarios</span>
+                </a>
+
+                <a href="#" class="menu-link">
+                    <i class='bx bx-cog'></i>
+                    <span>Configuración</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+
+            <header class="topbar">
+                <button class="menu-toggle" id="menuToggle" type="button">
+                    <i class='bx bx-menu'></i>
+                </button>
+
+                <section class="topbar-spacer"></section>
+
+                <button class="theme-toggle" id="themeToggle" type="button">
+                    <i class='bx bx-moon'></i>
+                </button>
+
+                <section class="admin-profile">
+                    <section class="admin-avatar">
+                        {{ request.user.username|slice:":1"|upper }}
+                    </section>
+
+                    <section class="admin-text">
+                        <strong>{{ request.user.username }}</strong>
+
+                        {% if request.user.is_superuser %}
+                            <span>Administrador</span>
+                        {% else %}
+                            <span>Vendedor</span>
+                        {% endif %}
+                    </section>
+                </section>
+            </header>
+
+            <section class="page-header">
+                <header>
+                    <p>Bienvenido, {{ request.user.username }}</p>
+                    <h1>Usuarios</h1>
+                </header>
+
+                <nav class="header-actions">
+                    <button type="button" class="btn-outline" id="btnExportar">
+                        <i class='bx bx-file'></i>
+                        Exportar
+                    </button>
+
+                    <button type="button" class="btn-primary">
+                        <i class='bx bx-plus'></i>
+                        Nuevo usuario
+                    </button>
+                </nav>
+            </section>
+
+            <section class="stats-grid">
+                <article class="stat-card">
+                    <section class="stat-icon">
+                        <i class='bx bx-user'></i>
+                    </section>
+
+                    <section>
+                        <span>Usuarios totales</span>
+                        <h3>{{ total_usuarios }}</h3>
+                        <p>Registrados</p>
+                    </section>
+                </article>
+
+                <article class="stat-card">
+                    <section class="stat-icon">
+                        <i class='bx bx-user-check'></i>
+                    </section>
+
+                    <section>
+                        <span>Usuarios activos</span>
+                        <h3>{{ usuarios_activos }}</h3>
+                        <p>Con acceso</p>
+                    </section>
+                </article>
+
+                <article class="stat-card">
+                    <section class="stat-icon warning">
+                        <i class='bx bx-user-x'></i>
+                    </section>
+
+                    <section>
+                        <span>Inactivos</span>
+                        <h3>{{ usuarios_inactivos }}</h3>
+                        <p class="warning-text">Revisar usuarios</p>
+                    </section>
+                </article>
+            </section>
+
+            <section class="content-grid">
+
+                <article class="panel-card users-panel">
+                    <header class="panel-header">
+                        <section>
+                            <h2>Listado de usuarios</h2>
+                            <p>Gestiona los usuarios registrados en el sistema</p>
+                        </section>
+
+                        <span class="badge-custom">Usuarios</span>
+                    </header>
+
+                    <section class="table-responsive">
+                        <table class="users-table" id="tablaUsuarios">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Correo</th>
+                                    <th>Estado</th>
+                                    <th>Fecha</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {% for usuario in usuarios %}
+                                <tr>
+                                    <td>
+                                        <div class="user-info">
+                                            <span class="user-avatar">
+                                                {{ usuario.username|slice:":1"|upper }}
+                                            </span>
+
+                                            <strong>
+                                                {% if usuario.get_full_name %}
+                                                    {{ usuario.get_full_name }}
+                                                {% else %}
+                                                    {{ usuario.username }}
+                                                {% endif %}
+                                            </strong>
+                                        </div>
+                                    </td>
+
+                                    <td class="email-cell">
+                                        {% if usuario.email %}
+                                            {{ usuario.email }}
+                                        {% else %}
+                                            Sin correo
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {% if usuario.is_active %}
+                                            <span class="status active">Activo</span>
+                                        {% else %}
+                                            <span class="status inactive">Inactivo</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>{{ usuario.date_joined|date:"d/m/Y" }}</td>
+
+                                    <td>
+                                        <div class="table-actions">
+                                            <button type="button" title="Editar">
+                                                <i class='bx bx-edit'></i>
+                                            </button>
+
+                                            <button type="button" title="Eliminar">
+                                                <i class='bx bx-trash'></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="empty-row">
+                                        No hay usuarios registrados.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </section>
+                </article>
+
+                <aside class="panel-card activity-panel">
+                    <header class="panel-header">
+                        <section>
+                            <h2>Actividad reciente</h2>
+                            <p>Últimos registros</p>
+                        </section>
+
+                        <i class='bx bx-list-check panel-icon'></i>
+                    </header>
+
+                    <section class="activity-list">
+                        {% for usuario in usuarios|slice:":4" %}
+                        <article class="activity-item">
+                            <span class="activity-icon">
+                                <i class='bx bx-user'></i>
+                            </span>
+
+                            <section>
+                                <strong>{{ usuario.username }} registrado</strong>
+                                <p>{{ usuario.date_joined|date:"d/m/Y h:i A" }}</p>
+                            </section>
+                        </article>
+                        {% empty %}
+                        <p class="empty-text">No hay actividad reciente.</p>
+                        {% endfor %}
+                    </section>
+
+                    <button type="button" class="history-btn">
+                        Ver toda la actividad
+                    </button>
+                </aside>
+
+            </section>
+
+        </main>
+
+    </section>
+
+    <section class="sidebar-overlay" id="sidebarOverlay"></section>
+
+</body>
+</html>
