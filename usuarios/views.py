@@ -29,7 +29,24 @@ def cerrarSesion(request):
 def gestionUsuarios(request):
     if not request.user.is_superuser:
         return redirect('dashboard')
-    
+
+    usuarios = User.objects.filter(is_superuser=False)
+    total_usuarios = usuarios.count()
+    usuarios_activos = usuarios.filter(is_active=True).count()
+    usuarios_inactivos = usuarios.filter(is_active=False).count()
+
+    return render(request, 'usuarios.html', {
+        'usuarios': usuarios,
+        'total_usuarios': total_usuarios,
+        'usuarios_activos': usuarios_activos,
+        'usuarios_inactivos': usuarios_inactivos,
+    })
+
+@login_required
+def crearVendedor(request):
+    if not request.user.is_superuser:
+        return redirect('dashboard')
+
     if request.method == 'POST':
         form = VendedorForm(request.POST)
 
@@ -47,9 +64,9 @@ def gestionUsuarios(request):
 
             return redirect('usuarios')
     else:
-         form = VendedorForm()
+        form = VendedorForm()
 
-    vendedores = User.objects.filter(is_superuser=False)
-    return render(request, 'usuarios.html', { 'vendedores': vendedores,
-                                            'form': form})
+    return render(request, 'crear_vendedor.html', {
+        'form': form
+    })
 

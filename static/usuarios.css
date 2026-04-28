@@ -141,6 +141,24 @@ body {
     color: var(--accent);
 }
 
+.logout-link {
+    margin-top: 12px;
+    color: var(--danger);
+}
+
+.logout-link i {
+    color: var(--danger);
+}
+
+.logout-link:hover {
+    background: var(--danger-soft);
+    color: var(--danger);
+}
+
+.logout-link:hover i {
+    color: var(--danger);
+}
+
 .menu-title {
     text-transform: uppercase;
     font-size: 12px;
@@ -165,8 +183,7 @@ body {
     align-items: center;
     gap: 16px;
     padding: 12px 18px;
-    position: sticky;
-    top: 12px;
+    position: static;
     z-index: 900;
 }
 
@@ -272,15 +289,17 @@ body {
 
 .btn-primary,
 .btn-outline {
-    height: 52px;
+    min-height: 52px;
     padding: 0 20px;
     border-radius: 14px;
     font-weight: 800;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     transition: 0.25s ease;
     cursor: pointer;
+    text-decoration: none;
 }
 
 .btn-primary {
@@ -371,8 +390,8 @@ body {
 
 .content-grid {
     display: grid;
-    grid-template-columns: minmax(0, 2.2fr) minmax(280px, 0.8fr);
-    gap: 22px;
+    grid-template-columns: 1fr;
+    gap: 24px;
     align-items: start;
 }
 
@@ -384,11 +403,13 @@ body {
 }
 
 .users-panel {
-    padding: 22px;
+    padding: 26px 28px;
+    min-width: 0;
 }
 
 .activity-panel {
-    padding: 20px;
+    padding: 26px 28px;
+    min-width: 0;
 }
 
 .panel-header {
@@ -428,19 +449,19 @@ body {
 
 .table-responsive {
     width: 100%;
-    overflow-x: auto;
+    overflow-x: visible;
 }
 
 .users-table {
     width: 100%;
+    min-width: 0;
     border-collapse: collapse;
-    min-width: 100%;
     table-layout: fixed;
 }
 
 .users-table th,
 .users-table td {
-    padding: 16px 10px;
+    padding: 18px 14px;
     border-bottom: 1px solid var(--border);
     text-align: left;
     vertical-align: middle;
@@ -458,6 +479,7 @@ body {
     color: var(--text);
     font-weight: 600;
     font-size: 15px;
+    overflow-wrap: anywhere;
 }
 
 .users-table th:nth-child(1),
@@ -467,26 +489,33 @@ body {
 
 .users-table th:nth-child(2),
 .users-table td:nth-child(2) {
-    width: 34%;
+    width: 18%;
 }
 
 .users-table th:nth-child(3),
 .users-table td:nth-child(3) {
-    width: 16%;
+    width: 24%;
 }
 
 .users-table th:nth-child(4),
 .users-table td:nth-child(4) {
-    width: 14%;
+    width: 12%;
 }
 
 .users-table th:nth-child(5),
 .users-table td:nth-child(5) {
+    width: 10%;
+}
+
+.users-table th:nth-child(6),
+.users-table td:nth-child(6) {
     width: 12%;
 }
 
 .email-cell {
     word-break: break-word;
+    overflow-wrap: anywhere;
+    line-height: 1.25;
 }
 
 .user-info {
@@ -537,25 +566,43 @@ body {
 
 .table-actions {
     display: flex;
-    gap: 7px;
+    gap: 12px;
+    justify-content: flex-start;
+    align-items: center;
+    min-width: 130px;
 }
 
-.table-actions button {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
+.action-btn {
+    width: 54px;
+    height: 54px;
+    border-radius: 18px;
     border: 1px solid var(--border);
     background: var(--input-bg);
     color: var(--muted);
-    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
     transition: 0.25s ease;
 }
 
-.table-actions button:hover {
+.action-btn i {
+    font-size: 31px;
+    line-height: 1;
+}
+
+.edit-btn:hover {
     color: var(--accent);
     border-color: var(--accent);
     background: var(--soft-accent);
+    transform: translateY(-2px);
+}
+
+.danger-btn:hover {
+    color: var(--danger);
+    border-color: var(--danger);
+    background: var(--danger-soft);
+    transform: translateY(-2px);
 }
 
 .empty-row,
@@ -567,12 +614,12 @@ body {
 }
 
 .activity-panel .panel-header h2 {
-    font-size: 22px;
+    font-size: 24px;
 }
 
 .activity-list {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px;
 }
 
@@ -582,7 +629,7 @@ body {
     gap: 12px;
     background: var(--input-bg);
     border-radius: 16px;
-    padding: 12px;
+    padding: 14px;
 }
 
 .activity-icon {
@@ -644,16 +691,6 @@ body {
     display: block;
 }
 
-@media (max-width: 1300px) {
-    .content-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .activity-panel {
-        width: 100%;
-    }
-}
-
 @media (max-width: 1200px) {
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -662,6 +699,10 @@ body {
     .page-header {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .activity-list {
+        grid-template-columns: 1fr;
     }
 }
 
@@ -714,8 +755,12 @@ body {
         padding: 20px;
     }
 
+    .table-responsive {
+        overflow-x: auto;
+    }
+
     .users-table {
-        min-width: 760px;
+        min-width: 900px;
     }
 }
 

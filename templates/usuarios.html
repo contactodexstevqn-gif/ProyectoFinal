@@ -35,7 +35,7 @@
                     <span>Dashboard</span>
                 </a>
 
-                <a href="#" class="menu-link">
+                <a href="{% url 'dashboard' %}" class="menu-link">
                     <i class='bx bx-package'></i>
                     <span>Productos</span>
                 </a>
@@ -75,6 +75,11 @@
                 <a href="#" class="menu-link">
                     <i class='bx bx-cog'></i>
                     <span>Configuración</span>
+                </a>
+
+                <a href="{% url 'logout' %}" class="menu-link logout-link">
+                    <i class='bx bx-log-out'></i>
+                    <span>Cerrar sesión</span>
                 </a>
             </nav>
         </aside>
@@ -121,10 +126,10 @@
                         Exportar
                     </button>
 
-                    <button type="button" class="btn-primary">
+                    <a href="{% url 'crear_vendedor' %}" class="btn-primary">
                         <i class='bx bx-plus'></i>
                         Nuevo usuario
-                    </button>
+                    </a>
                 </nav>
             </section>
 
@@ -172,7 +177,7 @@
                     <header class="panel-header">
                         <section>
                             <h2>Listado de usuarios</h2>
-                            <p>Gestiona los usuarios registrados en el sistema</p>
+                            <p>Gestiona los vendedores registrados en el sistema</p>
                         </section>
 
                         <span class="badge-custom">Usuarios</span>
@@ -183,6 +188,7 @@
                             <thead>
                                 <tr>
                                     <th>Nombre</th>
+                                    <th>Usuario</th>
                                     <th>Correo</th>
                                     <th>Estado</th>
                                     <th>Fecha</th>
@@ -194,7 +200,7 @@
                                 {% for usuario in usuarios %}
                                 <tr>
                                     <td>
-                                        <div class="user-info">
+                                        <section class="user-info">
                                             <span class="user-avatar">
                                                 {{ usuario.username|slice:":1"|upper }}
                                             </span>
@@ -203,11 +209,13 @@
                                                 {% if usuario.get_full_name %}
                                                     {{ usuario.get_full_name }}
                                                 {% else %}
-                                                    {{ usuario.username }}
+                                                    Sin nombre
                                                 {% endif %}
                                             </strong>
-                                        </div>
+                                        </section>
                                     </td>
+
+                                    <td>{{ usuario.username }}</td>
 
                                     <td class="email-cell">
                                         {% if usuario.email %}
@@ -228,20 +236,20 @@
                                     <td>{{ usuario.date_joined|date:"d/m/Y" }}</td>
 
                                     <td>
-                                        <div class="table-actions">
-                                            <button type="button" title="Editar">
-                                                <i class='bx bx-edit'></i>
+                                        <section class="table-actions">
+                                            <button type="button" class="action-btn edit-btn" title="Editar usuario">
+                                                <i class='bx bx-edit-alt'></i>
                                             </button>
 
-                                            <button type="button" title="Eliminar">
-                                                <i class='bx bx-trash'></i>
+                                            <button type="button" class="action-btn danger-btn" title="Desactivar usuario">
+                                                <i class='bx bx-user-x'></i>
                                             </button>
-                                        </div>
+                                        </section>
                                     </td>
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="5" class="empty-row">
+                                    <td colspan="6" class="empty-row">
                                         No hay usuarios registrados.
                                     </td>
                                 </tr>
@@ -262,7 +270,7 @@
                     </header>
 
                     <section class="activity-list">
-                        {% for usuario in usuarios|slice:":4" %}
+                        {% for usuario in usuarios|slice:":6" %}
                         <article class="activity-item">
                             <span class="activity-icon">
                                 <i class='bx bx-user'></i>
