@@ -1,0 +1,30 @@
+:root {
+    --fucsia: #d63384;
+    --fucsia-dark: #ad2166;
+    --mint: #20c997;
+}
+
+body {
+    font-family: Arial, sans-serif;
+}
+
+.card {
+    border: 0;
+    border-radius: 18px;
+}
+
+.btn-mint {
+    background: var(--mint);
+    border: none;
+    color: #fff;
+    font-weight: 600;
+}
+
+.btn-mint:hover {
+    background: #17a982;
+    color: #fff;
+}
+
+a {
+    text-decoration: none;
+}
