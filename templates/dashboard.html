@@ -34,7 +34,8 @@
                     <span>Dashboard</span>
                 </a>
 
-                <a href="#" class="menu-link">
+                {% if es_admin %}
+                <a href="{% url 'agregar_producto' %}" class="menu-link">
                     <i class='bx bx-package'></i>
                     <span>Productos</span>
                 </a>
@@ -43,12 +44,14 @@
                     <i class='bx bx-bar-chart-alt-2'></i>
                     <span>Inventario</span>
                 </a>
+                {% endif %}
 
                 <a href="{% url 'nueva_venta' %}" class="menu-link">
                     <i class='bx bx-cart'></i>
                     <span>Ventas</span>
                 </a>
 
+                {% if es_admin %}
                 <a href="#" class="menu-link">
                     <i class='bx bx-group'></i>
                     <span>Clientes</span>
@@ -59,7 +62,7 @@
                     <span>Historial</span>
                 </a>
 
-                <a href="#" class="menu-link">
+                <a href="{% url 'exportar_ventas' %}" class="menu-link">
                     <i class='bx bx-line-chart'></i>
                     <span>Reportes</span>
                 </a>
@@ -75,6 +78,17 @@
                     <i class='bx bx-cog'></i>
                     <span>Configuración</span>
                 </a>
+                {% else %}
+                <a href="{% url 'exportar_ventas' %}" class="menu-link">
+                    <i class='bx bx-line-chart'></i>
+                    <span>Mi reporte</span>
+                </a>
+                {% endif %}
+
+                <a href="{% url 'logout' %}" class="menu-link logout-link">
+                    <i class='bx bx-log-out'></i>
+                    <span>Cerrar sesión</span>
+                </a>
             </nav>
         </aside>
 
@@ -87,7 +101,7 @@
 
                 <form method="GET" action="{% url 'dashboard' %}" class="search-box">
                     <i class='bx bx-search'></i>
-                    <input type="text" name="q" value="{{ query }}" placeholder="Buscar prendas, clientes o ventas...">
+                    <input type="text" name="q" value="{{ query }}" placeholder="Buscar prendas o ventas...">
                 </form>
 
                 <section class="filters d-none d-md-flex">
@@ -123,26 +137,29 @@
 
                     <section class="admin-text d-none d-sm-block">
                         <strong>{{ request.user.username }}</strong>
-
-                        {% if request.user.is_superuser %}
-                            <span>Administrador</span>
-                        {% else %}
-                            <span>Vendedor</span>
-                        {% endif %}
+                        <span>{{ rol_usuario }}</span>
                     </section>
                 </section>
             </header>
 
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }} mt-3" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
             <section class="dashboard-header">
                 <header>
                     <p>Bienvenido, {{ request.user.username }}</p>
-                    <h1>Panel principal</h1>
+                    <h1>{% if es_admin %}Panel principal{% else %}Panel de vendedor{% endif %}</h1>
                 </header>
 
                 <nav class="header-actions" aria-label="Acciones rápidas">
                     <a href="{% url 'exportar_ventas' %}" class="btn btn-outline-custom">
                         <i class='bx bx-file'></i>
-                        Exportar
+                        {% if es_admin %}Exportar ventas{% else %}Descargar mi reporte{% endif %}
                     </a>
 
                     <a href="{% url 'nueva_venta' %}" class="btn btn-primary-custom">
@@ -150,10 +167,12 @@
                         Nueva venta
                     </a>
 
+                    {% if es_admin %}
                     <a href="{% url 'agregar_producto' %}" class="btn btn-primary-custom">
                         <i class='bx bx-plus'></i>
                         Agregar producto
                     </a>
+                    {% endif %}
                 </nav>
             </section>
 
@@ -164,7 +183,7 @@
                     </section>
 
                     <section>
-                        <span>Ventas</span>
+                        <span>{% if es_admin %}Ventas{% else %}Mis ventas{% endif %}</span>
                         <h3>${{ total_ventas|default:"0" }}</h3>
                         <p>Total registrado</p>
                     </section>
@@ -178,21 +197,23 @@
                     <section>
                         <span>Productos</span>
                         <h3>{{ total_productos|default:"0" }}</h3>
-                        <p>Activos</p>
+                        <p>Disponibles</p>
                     </section>
                 </article>
 
+                {% if es_admin %}
                 <article class="stat-card">
                     <section class="stat-icon success">
                         <i class='bx bx-user-plus'></i>
                     </section>
 
                     <section>
-                        <span>Clientes</span>
-                        <h3>{{ total_clientes|default:"1" }}</h3>
+                        <span>Usuarios</span>
+                        <h3>{{ total_clientes|default:"0" }}</h3>
                         <p>Registrados</p>
                     </section>
                 </article>
+                {% endif %}
 
                 <article class="stat-card">
                     <section class="stat-icon warning">
@@ -275,7 +296,7 @@
                 <article class="panel-card sales-panel">
                     <header class="panel-header">
                         <section>
-                            <h2>Ventas recientes</h2>
+                            <h2>{% if es_admin %}Ventas recientes{% else %}Mis ventas recientes{% endif %}</h2>
                             <p>Últimos movimientos</p>
                         </section>
 

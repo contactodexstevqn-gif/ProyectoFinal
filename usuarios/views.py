@@ -1,8 +1,11 @@
-from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group, User
+from django.shortcuts import redirect, render
+
+from backend.permissions import GRUPO_VENDEDOR, admin_required, asegurar_grupos_base
 from .forms import VendedorForm
+
 
 def iniciarSesion(request):
     if request.method == 'POST':
@@ -16,21 +19,22 @@ def iniciarSesion(request):
             return redirect('dashboard')
         else:
             return render(request, 'login.html', {
-                          'error':
-                          'Cuenta no encontrada'
-                          })
-    return render (request, 'login.html')
+                'error': 'Cuenta no encontrada'
+            })
+
+    return render(request, 'login.html')
+
 
 def cerrarSesion(request):
     logout(request)
     return redirect('login')
 
-@login_required
-def gestionUsuarios(request):
-    if not request.user.is_superuser:
-        return redirect('dashboard')
 
+@login_required
+@admin_required
+def gestionUsuarios(request):
     usuarios = User.objects.filter(is_superuser=False)
+
     total_usuarios = usuarios.count()
     usuarios_activos = usuarios.filter(is_active=True).count()
     usuarios_inactivos = usuarios.filter(is_active=False).count()
@@ -42,10 +46,11 @@ def gestionUsuarios(request):
         'usuarios_inactivos': usuarios_inactivos,
     })
 
+
 @login_required
+@admin_required
 def crearVendedor(request):
-    if not request.user.is_superuser:
-        return redirect('dashboard')
+    asegurar_grupos_base()
 
     if request.method == 'POST':
         form = VendedorForm(request.POST)
@@ -62,6 +67,9 @@ def crearVendedor(request):
 
             vendedor.save()
 
+            grupo_vendedor = Group.objects.get(name=GRUPO_VENDEDOR)
+            vendedor.groups.add(grupo_vendedor)
+
             return redirect('usuarios')
     else:
         form = VendedorForm()
@@ -69,4 +77,3 @@ def crearVendedor(request):
     return render(request, 'crear_vendedor.html', {
         'form': form
     })
-
