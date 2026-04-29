@@ -1,14 +1,15 @@
 # BACKEND ES LA APP PRINCIPAL (DASHBOARD)
 
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
 from django.contrib import messages
+from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.db.models import Sum, Q
+from django.db.models import Q, Sum
+from django.shortcuts import redirect, render
 
 from productos.models import Producto
 from ventas.models import Venta
+from .permissions import es_administrador, rol_usuario
 
 
 def login_view(request):
@@ -40,6 +41,7 @@ def login_view(request):
 @login_required(login_url='login')
 def dashboard(request):
     query = request.GET.get('q', '')
+    es_admin = es_administrador(request.user)
 
     productos = Producto.objects.all()
 
@@ -52,15 +54,22 @@ def dashboard(request):
         )
 
     productos = productos.annotate(
-        total_vendidos=Sum('venta__cantidad')
+        total_vendidos=Sum('ventas__cantidad')
     ).distinct().order_by('-total_vendidos', 'nombre')[:3]
 
     total_productos = Producto.objects.count()
     stock_bajo = Producto.objects.filter(stock__lte=5).count()
-    total_ventas = Venta.objects.aggregate(total=Sum('total'))['total'] or 0
-    total_clientes = User.objects.count()
 
-    ventas_recientes = Venta.objects.select_related(
+    if es_admin:
+        ventas_base = Venta.objects.all()
+        total_clientes = User.objects.count()
+    else:
+        ventas_base = Venta.objects.filter(vendedor=request.user)
+        total_clientes = None
+
+    total_ventas = ventas_base.aggregate(total=Sum('total'))['total'] or 0
+
+    ventas_recientes = ventas_base.select_related(
         'producto',
         'vendedor'
     ).order_by('-id')[:5]
@@ -73,11 +82,17 @@ def dashboard(request):
         'stock_bajo': stock_bajo,
         'total_ventas': total_ventas,
         'total_clientes': total_clientes,
+        'es_admin': es_admin,
+        'rol_usuario': rol_usuario(request.user),
     })
 
 
 @login_required(login_url='login')
 def usuarios(request):
+    if not es_administrador(request.user):
+        messages.error(request, 'No tienes permisos para ver usuarios.')
+        return redirect('dashboard')
+
     usuarios = User.objects.all().order_by('-date_joined')
 
     total_usuarios = usuarios.count()
