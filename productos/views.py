@@ -3,14 +3,12 @@ import json
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from backend.permissions import admin_required
 from .forms import CategoriaForm, ProductoForm
 from .models import Categoria, Producto
-
-from django.shortcuts import get_object_or_404, redirect, render
 
 
 @login_required(login_url='login')
@@ -34,12 +32,12 @@ def listar_productos(request):
         productos = productos.filter(categoria_id=categoria_id)
 
     if stock == 'bajo':
-        productos = productos.filter(stock__lte=5)
+        productos = productos.filter(stock__gte=1, stock__lte=5)
     elif stock == 'sin_stock':
         productos = productos.filter(stock=0)
 
     total_productos = Producto.objects.count()
-    stock_bajo = Producto.objects.filter(stock__lte=5).count()
+    stock_bajo = Producto.objects.filter(stock__gte=1, stock__lte=5).count()
     sin_stock = Producto.objects.filter(stock=0).count()
 
     return render(request, 'productos.html', {
@@ -161,3 +159,30 @@ def actualizar_stock(request, producto_id):
         'producto': producto
     })
 
+@login_required(login_url='login')
+@admin_required
+def eliminar_producto(request, producto_id):
+    producto = get_object_or_404(Producto, id=producto_id)
+
+    if request.method == 'POST':
+        confirmar = request.POST.get('confirmar')
+        if confirmar == 'si':
+            producto.delete()
+            return redirect('productos')
+        else:
+            return render(request, 'eliminar_producto.html', 
+                          {'producto': producto,
+                           'error': 'Debes confirmar la eliminación para continuar.'})
+        
+    return render(request, 'eliminar_producto.html', {
+        'producto': producto})
+
+
+
+# Todo lo no relacionado con catalogo publico, hacen el codigo arriba de este comentario de aqui para abajo
+# es backend para la pagina publica cuando se haga despliegue 
+
+def catalogo_publico(request):
+    productos = Producto.objects.select_related('categoria').all().order_by('nombre')
+
+    return render(request, 'catalogo.html', {'productos': productos})

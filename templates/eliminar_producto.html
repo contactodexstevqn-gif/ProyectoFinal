@@ -1,0 +1,57 @@
+{% extends 'form_base.html' %}
+
+{% block titulo %}Eliminar producto | Fucsia Boutique{% endblock %}
+
+{% block contenido %}
+
+<header class="form-header">
+    <section>
+        <h1>Eliminar producto</h1>
+        <p>Confirma si deseas eliminar este producto del catálogo.</p>
+    </section>
+
+    <a href="{% url 'productos' %}" class="back-btn">
+        <i class='bx bx-arrow-back'></i>
+        Volver
+    </a>
+</header>
+
+{% if error %}
+<section class="error-message">
+    <i class='bx bx-error-circle'></i>
+    <span>{{ error }}</span>
+</section>
+{% endif %}
+
+<section class="warning-box">
+    <i class='bx bx-error'></i>
+    <p>
+        Vas a eliminar <strong>{{ producto.nombre }}</strong>.
+        Esta acción no se puede deshacer.
+    </p>
+</section>
+
+<form method="POST">
+    {% csrf_token %}
+
+    <label class="confirm-check">
+        <input type="checkbox" name="confirmar" value="si">
+        <span class="checkmark"></span>
+        <span class="check-text">
+            Entiendo que esta acción no se puede deshacer.
+        </span>
+    </label>
+
+    <section class="form-actions">
+        <a href="{% url 'productos' %}" class="btn-cancel">
+            Cancelar
+        </a>
+
+        <button type="submit" class="btn-delete">
+            <i class='bx bx-trash'></i>
+            Eliminar producto
+        </button>
+    </section>
+</form>
+
+{% endblock %}
