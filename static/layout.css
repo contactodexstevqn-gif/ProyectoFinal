@@ -1,0 +1,123 @@
+.topbar {
+    min-height: 76px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    border-radius: 24px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.05);
+}
+
+.topbar-page-info {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+}
+
+.topbar-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: var(--soft-accent);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.topbar-icon i {
+    color: var(--accent);
+    font-size: 24px;
+}
+
+.topbar-page-info strong {
+    display: block;
+    color: var(--primary);
+    font-size: 17px;
+    font-weight: 900;
+    line-height: 1.1;
+}
+
+.topbar-page-info span {
+    display: block;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 3px;
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+}
+
+.panel-card,
+.stat-card,
+.products-filter-panel,
+.products-panel-full {
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
+}
+
+.page-header,
+.dashboard-header {
+    margin-top: 34px;
+}
+
+body.dark-mode .topbar,
+body.dark-mode .panel-card,
+body.dark-mode .stat-card,
+body.dark-mode .products-filter-panel,
+body.dark-mode .products-panel-full {
+    background: var(--card);
+    border-color: var(--border);
+}
+
+@media (max-width: 768px) {
+    .topbar {
+        min-height: auto;
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .topbar-page-info {
+        width: calc(100% - 60px);
+    }
+
+    .topbar-actions {
+        margin-left: auto;
+    }
+
+    .topbar-page-info strong {
+        font-size: 15px;
+    }
+
+    .topbar-page-info span {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 576px) {
+    .topbar {
+        padding: 12px;
+        border-radius: 18px;
+    }
+
+    .topbar-icon {
+        width: 42px;
+        height: 42px;
+    }
+
+    .admin-text {
+        display: none !important;
+    }
+}
