@@ -44,7 +44,7 @@
                     <span>Productos</span>
                 </a>
 
-                <a href="#" class="menu-link">
+                <a href="{% url 'inventario' %}" class="menu-link {% if request.resolver_match.url_name == 'inventario' %}active{% endif %}">
                     <i class='bx bx-bar-chart-alt-2'></i>
                     <span>Inventario</span>
                 </a>

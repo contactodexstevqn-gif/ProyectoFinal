@@ -8,7 +8,9 @@ from django.views.decorators.http import require_POST
 
 from backend.permissions import admin_required
 from .forms import CategoriaForm, ProductoForm
-from .models import Categoria, Producto
+from .models import Categoria, Producto, MovimientoInventario
+
+from django.contrib import messages
 
 
 @login_required(login_url='login')
@@ -143,20 +145,65 @@ def actualizar_stock(request, producto_id):
     producto = get_object_or_404(Producto, id=producto_id)
 
     if request.method == 'POST':
+        tipo = request.POST.get('tipo')
+        motivo = request.POST.get('motivo')
         cantidad = request.POST.get('cantidad')
+        observacion = request.POST.get('observacion', '')
+
+        if not tipo or not motivo or not cantidad:
+            messages.error(request, 'Debes completar tipo de movimiento, motivo y cantidad.')
+            return redirect('actualizar_stock', producto_id=producto.id)
 
         try:
             cantidad = int(cantidad)
-        except (TypeError, ValueError):
-            cantidad = 0
+        except ValueError:
+            messages.error(request, 'La cantidad debe ser un numero valido')
+            return redirect('actualizar_stock', producto_id=producto.id)
 
-        if cantidad > 0:
-            producto.stock += cantidad
-            producto.save()
-            return redirect('productos')
+        if cantidad < 0:
+            messages.error(request, 'La cantidad del stock no puede ser negativa')
+            return redirect('actualizar_stock', producto_id=producto.id)
+
+        stock_anterior = producto.stock
+
+        if tipo == 'entrada':
+            stock_nuevo = stock_anterior + cantidad
+
+        elif tipo == 'salida':
+            stock_nuevo = stock_anterior - cantidad
+
+            if stock_nuevo < 0:
+                messages.error(request, 'El stock no puede quedar negativo, no puedes sacar mas' \
+                'productos de los que hay actualmente')
+                return redirect('actualizar_stock', producto_id=producto.id)
+
+        elif tipo == 'correccion':
+            stock_nuevo = cantidad
+
+        else:
+            messages.error(request, 'El tipo de movimiento no es valido')
+            return redirect('actualizar_stock', producto_id=producto.id)
+
+        producto.stock = stock_nuevo
+        producto.save()
+
+        MovimientoInventario.objects.create(
+            producto=producto,
+            tipo=tipo,
+            motivo=motivo,
+            cantidad=cantidad,
+            stock_anterior=stock_anterior,
+            stock_nuevo=stock_nuevo,
+            observacion=observacion
+        )
+
+        messages.success(request, 'Stock actualizado correctamente')
+        return redirect('inventario')
 
     return render(request, 'actualizar_stock.html', {
-        'producto': producto
+        'producto': producto,
+        'tipoElecciones': MovimientoInventario.tipoElecciones,
+        'motivoElecciones': MovimientoInventario.motivoElecciones,
     })
 
 @login_required(login_url='login')
@@ -177,10 +224,64 @@ def eliminar_producto(request, producto_id):
     return render(request, 'eliminar_producto.html', {
         'producto': producto})
 
+@login_required(login_url='login')
+@admin_required
+def inventario(request):
+    query = request.GET.get('q', '')
+    categoria_id = request.GET.get('categoria', '')
+    stock = request.GET.get('stock', '')
 
+    productos = Producto.objects.select_related('categoria').all().order_by('stock', 'nombre')
+    categorias = Categoria.objects.all().order_by('nombre')
 
-# Todo lo no relacionado con catalogo publico, hacen el codigo arriba de este comentario de aqui para abajo
-# es backend para la pagina publica cuando se haga despliegue 
+    if query:
+        productos = productos.filter(
+            Q(nombre__icontains=query) |
+            Q(talla__icontains=query) |
+            Q(color__icontains=query)
+        )
+
+    if categoria_id:
+        productos = productos.filter(categoria_id=categoria_id)
+
+    if stock == 'bajo':
+        productos = productos.filter(stock__gte=1, stock__lte=5)
+    elif stock == 'sin_stock':
+        productos = productos.filter(stock=0)
+    elif stock == 'disponible':
+        productos = productos.filter(stock__gt=5)
+
+    productos_lista = list(productos)
+
+    for producto in productos_lista:
+        producto.valor_stock = producto.precio * producto.stock
+
+    todos_productos = Producto.objects.all()
+
+    total_productos = Producto.objects.count()
+    stock_bajo = Producto.objects.filter(stock__gte=1, stock__lte=5).count()
+    sin_stock = Producto.objects.filter(stock=0).count()
+    disponibles = Producto.objects.filter(stock__gt=5).count()
+    valor_total = sum(producto.precio * producto.stock for producto in todos_productos)
+
+    productos_criticos = Producto.objects.select_related('categoria').filter(stock__lte=5).order_by('stock', 'nombre')[:5]
+
+    return render(request, 'inventario.html', {
+        'productos': productos_lista,
+        'categorias': categorias,
+        'query': query,
+        'categoria_id': categoria_id,
+        'stock': stock,
+        'total_productos': total_productos,
+        'stock_bajo': stock_bajo,
+        'sin_stock': sin_stock,
+        'disponibles': disponibles,
+        'valor_total': valor_total,
+        'productos_criticos': productos_criticos,
+    })
+
+# Todo lo no relacionado con catalogo publico, hacen el codigo arriba de este comentario 
+# de aqui para abajo es backend para la pagina publica del catalogo
 
 def catalogo_publico(request):
     productos = Producto.objects.select_related('categoria').all().order_by('nombre')
