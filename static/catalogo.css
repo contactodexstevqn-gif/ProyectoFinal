@@ -102,7 +102,7 @@ body {
     align-items: center;
     height: 38px;
     padding: 0 16px;
-    border-radius: 999px
+    border-radius: 999px;
     background: var(--soft-accent);
     color: var(--accent);
     font-weight: 900;

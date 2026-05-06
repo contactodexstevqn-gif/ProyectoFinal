@@ -95,13 +95,14 @@ body {
     line-height: 0.95;
     font-weight: 800;
     color: var(--primary);
+    margin: 0;
 }
 
 .brand-info p {
     color: var(--accent);
     font-size: 14px;
     font-weight: 600;
-    margin-top: 6px;
+    margin: 6px 0 0;
 }
 
 .sidebar-menu {
