@@ -15,6 +15,7 @@ urlpatterns = [
 
 
     path('venta/', ventas_views.nueva_venta, name='nueva_venta'),
+    path('historial-ventas/', ventas_views.historial_ventas, name='historial_ventas'),
     path('exportar-ventas/', ventas_views.exportar_ventas, name='exportar_ventas'),
 
     path('catalogo/', catalogo_publico, name='catalogo_publico'),

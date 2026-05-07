@@ -33,24 +33,28 @@
             </header>
 
             <nav class="sidebar-menu" aria-label="Menú principal">
-                <a href="{% url 'dashboard' %}" class="menu-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <a href="{% url 'dashboard' %}"
+                    class="menu-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                     <i class='bx bx-grid-alt'></i>
                     <span>Dashboard</span>
                 </a>
 
                 {% if es_admin or request.user.is_superuser %}
-                <a href="{% url 'productos' %}" class="menu-link {% if request.resolver_match.url_name == 'productos' %}active{% endif %}">
+                <a href="{% url 'productos' %}"
+                    class="menu-link {% if request.resolver_match.url_name == 'productos' %}active{% endif %}">
                     <i class='bx bx-package'></i>
                     <span>Productos</span>
                 </a>
 
-                <a href="{% url 'inventario' %}" class="menu-link {% if request.resolver_match.url_name == 'inventario' %}active{% endif %}">
+                <a href="{% url 'inventario' %}"
+                    class="menu-link {% if request.resolver_match.url_name == 'inventario' %}active{% endif %}">
                     <i class='bx bx-bar-chart-alt-2'></i>
                     <span>Inventario</span>
                 </a>
                 {% endif %}
 
-                <a href="{% url 'nueva_venta' %}" class="menu-link {% if request.resolver_match.url_name == 'nueva_venta' %}active{% endif %}">
+                <a href="{% url 'nueva_venta' %}"
+                    class="menu-link {% if request.resolver_match.url_name == 'nueva_venta' %}active{% endif %}">
                     <i class='bx bx-cart'></i>
                     <span>Ventas</span>
                 </a>
@@ -61,7 +65,8 @@
                     <span>Clientes</span>
                 </a>
 
-                <a href="#" class="menu-link">
+                <a href="{% url 'historial_ventas' %}"
+                    class="menu-link {% if request.resolver_match.url_name == 'historial_ventas' %}active{% endif %}">
                     <i class='bx bx-time-five'></i>
                     <span>Historial</span>
                 </a>
@@ -73,7 +78,8 @@
 
                 <p class="menu-title">ADMINISTRACIÓN</p>
 
-                <a href="{% url 'usuarios' %}" class="menu-link {% if request.resolver_match.url_name == 'usuarios' %}active{% endif %}">
+                <a href="{% url 'usuarios' %}"
+                    class="menu-link {% if request.resolver_match.url_name == 'usuarios' %}active{% endif %}">
                     <i class='bx bx-user'></i>
                     <span>Usuarios</span>
                 </a>
@@ -130,11 +136,11 @@
                             <strong>{{ request.user.username }}</strong>
 
                             {% if rol_usuario %}
-                                <span>{{ rol_usuario }}</span>
+                            <span>{{ rol_usuario }}</span>
                             {% elif request.user.is_superuser %}
-                                <span>Administrador</span>
+                            <span>Administrador</span>
                             {% else %}
-                                <span>Vendedor</span>
+                            <span>Vendedor</span>
                             {% endif %}
                         </section>
                     </section>
@@ -142,11 +148,11 @@
             </header>
 
             {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags|default:'info' }} mt-3" role="alert">
-                        {{ message }}
-                    </div>
-                {% endfor %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} mt-3" role="alert">
+                {{ message }}
+            </div>
+            {% endfor %}
             {% endif %}
 
             {% block contenido %}
