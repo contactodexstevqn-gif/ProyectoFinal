@@ -61,7 +61,7 @@ Antes de ejecutar el proyecto, se debe tener instalado:
 
 Clonar el repositorio:
 
-    git clone URL_DEL_REPO
+    git clone https://github.com/contactodexstevqn-gif/ProyectoFinal.git
 
 Entrar a la carpeta del proyecto:
 
