@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
         ],
         salida: [
             { valor: "venta_manual", texto: "Venta manual" },
-            { valor: "producto_danado", texto: "Producto dañado" },
+            { valor: "producto_dañado", texto: "Producto dañado" },
             { valor: "perdida", texto: "Pérdida" },
             { valor: "robo", texto: "Robo" },
             { valor: "devolucion_proveedor", texto: "Devolución a proveedor" }
@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const opcionInicial = document.createElement("option");
         opcionInicial.value = "";
-        opcionInicial.textContent = "Selecciona un motivo";
+        opcionInicial.textContent = "Sin motivo";
         motivoSelect.appendChild(opcionInicial);
 
         motivos.forEach(function (motivo) {

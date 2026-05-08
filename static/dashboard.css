@@ -413,6 +413,10 @@ body {
     transition: 0.25s ease;
 }
 
+.stat-card > section:not(.stat-icon) {
+    min-width: 0;
+}
+
 .stat-card:hover {
     transform: translateY(-4px);
 }
@@ -457,9 +461,11 @@ body {
 
 .stat-card h3 {
     color: var(--primary);
-    font-size: 30px;
+    font-size: clamp(24px, 2vw, 30px);
     font-weight: 900;
     margin: 6px 0 0;
+    line-height: 1.05;
+    white-space: nowrap;
 }
 
 .stat-card p {

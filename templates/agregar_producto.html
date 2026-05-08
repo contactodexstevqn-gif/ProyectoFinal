@@ -21,7 +21,12 @@
     </a>
 </header>
 
-<form method="POST" class="product-form">
+<form method="POST" class="product-form confirm-form" enctype="multipart/form-data"
+      data-confirm-title="¿Registrar producto?"
+      data-confirm-text="El producto se guardará en el catálogo."
+      data-confirm-icon="question"
+      data-confirm-button="Sí, registrar"
+      data-loading-text="Creando...">
     {% csrf_token %}
 
     <section class="mb-3">

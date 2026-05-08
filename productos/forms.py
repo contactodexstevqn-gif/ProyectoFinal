@@ -77,3 +77,15 @@ class ProductoForm(forms.ModelForm):
             'stock': 'Stock',
             'imagen': 'Imagen'
         }
+
+
+class ProductoEditForm(ProductoForm):
+    class Meta(ProductoForm.Meta):
+        fields = [
+            'nombre',
+            'categoria',
+            'talla',
+            'color',
+            'precio',
+            'imagen'
+        ]

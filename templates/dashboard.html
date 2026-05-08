@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load formatos %}
 
 {% block titulo %}Dashboard | Fucsia Boutique{% endblock %}
 
@@ -54,7 +55,7 @@
 
         <section>
             <span>{% if es_admin %}Ventas{% else %}Mis ventas{% endif %}</span>
-            <h3>${{ total_ventas|default:"0" }}</h3>
+            <h3>{{ total_ventas|default:"0"|formato_pesos }}</h3>
             <p>Total registrado</p>
         </section>
     </article>
@@ -143,7 +144,7 @@
                         </td>
 
                         <td>
-                            <span class="price-text">${{ producto.precio }}</span>
+                            <span class="price-text">{{ producto.precio|formato_pesos }}</span>
                         </td>
 
                         <td>
@@ -191,7 +192,7 @@
                     {% endif %}
                 </section>
 
-                <p>${{ venta.total }}</p>
+                <p>{{ venta.total|formato_pesos }}</p>
             </article>
             {% endfor %}
         </section>

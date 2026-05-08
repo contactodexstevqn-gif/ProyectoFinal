@@ -43,7 +43,7 @@ class MovimientoInventario(models.Model):
                                  related_name='movimientos')
     
     tipo = models.CharField(max_length=15, choices=tipoElecciones)
-    motivo = models.CharField(max_length=100, choices=motivoElecciones)
+    motivo = models.CharField(max_length=100, choices=motivoElecciones, blank=True, null=True)
     cantidad = models.PositiveIntegerField()
     stock_anterior = models.PositiveIntegerField()
     stock_nuevo = models.PositiveIntegerField()

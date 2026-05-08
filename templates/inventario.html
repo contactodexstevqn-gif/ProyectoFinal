@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load formatos %}
 
 {% block titulo %}Inventario | Fucsia Boutique{% endblock %}
 
@@ -82,7 +83,7 @@
 
         <section>
             <span>Valor total del inventario</span>
-            <h2>${{ valor_total|default:"0" }}</h2>
+            <h2>{{ valor_total|default:"0"|formato_pesos }}</h2>
             <p>Calculado con el precio de cada producto por su stock actual.</p>
         </section>
     </article>
@@ -302,7 +303,7 @@
                         </td>
 
                         <td class="price-cell">
-                            ${{ producto.valor_stock|default:"0" }}
+                            {{ producto.valor_stock|default:"0"|formato_pesos }}
                         </td>
 
                         <td class="stock-column">

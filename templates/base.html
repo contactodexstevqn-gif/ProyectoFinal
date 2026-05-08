@@ -11,6 +11,7 @@
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 
     <link rel="stylesheet" href="{% static 'layout.css' %}">
+    <link rel="stylesheet" href="{% static 'sweetalert_custom.css' %}">
 
     {% block estilos %}
     {% endblock %}
@@ -28,29 +29,33 @@
 
                 <section class="brand-info">
                     <h2>Fucsia<br>Boutique</h2>
-                    <p>Gestión comercial</p>
+                    <p>Gestion comercial</p>
                 </section>
             </header>
 
-            <nav class="sidebar-menu" aria-label="Menú principal">
-                <a href="{% url 'dashboard' %}" class="menu-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            <nav class="sidebar-menu" aria-label="Menu principal">
+                <a href="{% url 'dashboard' %}"
+                    class="menu-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                     <i class='bx bx-grid-alt'></i>
                     <span>Dashboard</span>
                 </a>
 
                 {% if es_admin or request.user.is_superuser %}
-                <a href="{% url 'productos' %}" class="menu-link {% if request.resolver_match.url_name == 'productos' %}active{% endif %}">
+                <a href="{% url 'productos' %}"
+                    class="menu-link {% if request.resolver_match.url_name == 'productos' %}active{% endif %}">
                     <i class='bx bx-package'></i>
                     <span>Productos</span>
                 </a>
 
-                <a href="{% url 'inventario' %}" class="menu-link {% if request.resolver_match.url_name == 'inventario' %}active{% endif %}">
+                <a href="{% url 'inventario' %}"
+                    class="menu-link {% if request.resolver_match.url_name == 'inventario' or request.resolver_match.url_name == 'actualizar_stock' %}active{% endif %}">
                     <i class='bx bx-bar-chart-alt-2'></i>
                     <span>Inventario</span>
                 </a>
                 {% endif %}
 
-                <a href="{% url 'nueva_venta' %}" class="menu-link {% if request.resolver_match.url_name == 'nueva_venta' %}active{% endif %}">
+                <a href="{% url 'nueva_venta' %}"
+                    class="menu-link {% if request.resolver_match.url_name == 'nueva_venta' %}active{% endif %}">
                     <i class='bx bx-cart'></i>
                     <span>Ventas</span>
                 </a>
@@ -61,7 +66,8 @@
                     <span>Clientes</span>
                 </a>
 
-                <a href="#" class="menu-link">
+                <a href="{% url 'historial_ventas' %}"
+                    class="menu-link {% if request.resolver_match.url_name == 'historial_ventas' %}active{% endif %}">
                     <i class='bx bx-time-five'></i>
                     <span>Historial</span>
                 </a>
@@ -71,16 +77,17 @@
                     <span>Reportes</span>
                 </a>
 
-                <p class="menu-title">ADMINISTRACIÓN</p>
+                <p class="menu-title">ADMINISTRACION</p>
 
-                <a href="{% url 'usuarios' %}" class="menu-link {% if request.resolver_match.url_name == 'usuarios' %}active{% endif %}">
+                <a href="{% url 'usuarios' %}"
+                    class="menu-link {% if request.resolver_match.url_name == 'usuarios' %}active{% endif %}">
                     <i class='bx bx-user'></i>
                     <span>Usuarios</span>
                 </a>
 
                 <a href="#" class="menu-link">
                     <i class='bx bx-cog'></i>
-                    <span>Configuración</span>
+                    <span>Configuracion</span>
                 </a>
                 {% else %}
                 <a href="{% url 'exportar_ventas' %}" class="menu-link">
@@ -91,7 +98,7 @@
 
                 <a href="{% url 'logout' %}" class="menu-link logout-link">
                     <i class='bx bx-log-out'></i>
-                    <span>Cerrar sesión</span>
+                    <span>Cerrar sesion</span>
                 </a>
             </nav>
         </aside>
@@ -111,7 +118,7 @@
 
                     <section>
                         <strong>Panel administrativo</strong>
-                        <span>Gestión comercial</span>
+                        <span>Gestion comercial</span>
                     </section>
                     {% endblock %}
                 </section>
@@ -130,24 +137,16 @@
                             <strong>{{ request.user.username }}</strong>
 
                             {% if rol_usuario %}
-                                <span>{{ rol_usuario }}</span>
+                            <span>{{ rol_usuario }}</span>
                             {% elif request.user.is_superuser %}
-                                <span>Administrador</span>
+                            <span>Administrador</span>
                             {% else %}
-                                <span>Vendedor</span>
+                            <span>Vendedor</span>
                             {% endif %}
                         </section>
                     </section>
                 </section>
             </header>
-
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags|default:'info' }} mt-3" role="alert">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
 
             {% block contenido %}
             {% endblock %}
@@ -157,6 +156,22 @@
     </section>
 
     <section class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></section>
+
+    {% if messages %}
+    <section class="django-messages-container">
+        {% for message in messages %}
+        <article
+            class="django-message-data"
+            data-type="{{ message.tags|escape }}"
+            data-text="{{ message|escape }}">
+        </article>
+        {% endfor %}
+    </section>
+    {% endif %}
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{% static 'sweetalert_global.js' %}"></script>
+    <script src="{% static 'confirmaciones.js' %}"></script>
 
     {% block scripts %}
     {% endblock %}
