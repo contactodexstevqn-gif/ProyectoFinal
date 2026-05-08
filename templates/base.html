@@ -11,6 +11,7 @@
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 
     <link rel="stylesheet" href="{% static 'layout.css' %}">
+    <link rel="stylesheet" href="{% static 'sweetalert_custom.css' %}">
 
     {% block estilos %}
     {% endblock %}
@@ -44,7 +45,7 @@
                     <span>Productos</span>
                 </a>
 
-                <a href="{% url 'inventario' %}" class="menu-link {% if request.resolver_match.url_name == 'inventario' %}active{% endif %}">
+                <a href="{% url 'inventario' %}" class="menu-link {% if request.resolver_match.url_name == 'inventario' or request.resolver_match.url_name == 'actualizar_stock' %}active{% endif %}">
                     <i class='bx bx-bar-chart-alt-2'></i>
                     <span>Inventario</span>
                 </a>
@@ -141,14 +142,6 @@
                 </section>
             </header>
 
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-{{ message.tags|default:'info' }} mt-3" role="alert">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-
             {% block contenido %}
             {% endblock %}
 
@@ -157,6 +150,22 @@
     </section>
 
     <section class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></section>
+
+    {% if messages %}
+    <section class="django-messages-container">
+        {% for message in messages %}
+        <article
+            class="django-message-data"
+            data-type="{{ message.tags|escape }}"
+            data-text="{{ message|escape }}">
+        </article>
+        {% endfor %}
+    </section>
+    {% endif %}
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{% static 'sweetalert_global.js' %}"></script>
+    <script src="{% static 'confirmaciones.js' %}"></script>
 
     {% block scripts %}
     {% endblock %}

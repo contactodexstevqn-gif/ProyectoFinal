@@ -1,5 +1,6 @@
 import json
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import JsonResponse
@@ -7,10 +8,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from backend.permissions import admin_required
-from .forms import CategoriaForm, ProductoForm
+from .forms import CategoriaForm, ProductoEditForm, ProductoForm
 from .models import Categoria, Producto, MovimientoInventario
-
-from django.contrib import messages
 
 
 @login_required(login_url='login')
@@ -58,11 +57,14 @@ def listar_productos(request):
 @admin_required
 def agregar_producto(request):
     if request.method == 'POST':
-        form = ProductoForm(request.POST)
+        form = ProductoForm(request.POST, request.FILES)
 
         if form.is_valid():
-            form.save()
+            producto = form.save()
+            messages.success(request, f'Producto "{producto.nombre}" agregado correctamente.')
             return redirect('productos')
+        else:
+            messages.error(request, 'No se pudo agregar el producto. Revisa los datos ingresados.')
     else:
         form = ProductoForm()
 
@@ -80,8 +82,11 @@ def agregar_categoria(request):
         form = CategoriaForm(request.POST)
 
         if form.is_valid():
-            form.save()
+            categoria = form.save()
+            messages.success(request, f'Categoría "{categoria.nombre}" agregada correctamente.')
             return redirect('agregar_categoria')
+        else:
+            messages.error(request, 'No se pudo agregar la categoría. Revisa los datos ingresados.')
     else:
         form = CategoriaForm()
 
@@ -120,24 +125,29 @@ def crear_categoria(request):
         'creada': creada
     })
 
+
 @login_required(login_url='login')
 @admin_required
 def editar_producto(request, producto_id):
     producto = get_object_or_404(Producto, id=producto_id)
 
     if request.method == 'POST':
-        form = ProductoForm(request.POST, instance=producto)
+        form = ProductoEditForm(request.POST, request.FILES, instance=producto)
 
         if form.is_valid():
-            form.save()
+            producto = form.save()
+            messages.success(request, f'Producto "{producto.nombre}" actualizado correctamente.')
             return redirect('productos')
+        else:
+            messages.error(request, 'No se pudo actualizar el producto. Revisa los datos ingresados.')
     else:
-        form = ProductoForm(instance=producto)
+        form = ProductoEditForm(instance=producto)
 
     return render(request, 'editar_producto.html', {
         'form': form,
         'producto': producto
     })
+
 
 @login_required(login_url='login')
 @admin_required
@@ -146,22 +156,22 @@ def actualizar_stock(request, producto_id):
 
     if request.method == 'POST':
         tipo = request.POST.get('tipo')
-        motivo = request.POST.get('motivo')
+        motivo = request.POST.get('motivo') or None
         cantidad = request.POST.get('cantidad')
-        observacion = request.POST.get('observacion', '')
+        observacion = request.POST.get('observacion', '') or None
 
-        if not tipo or not motivo or not cantidad:
-            messages.error(request, 'Debes completar tipo de movimiento, motivo y cantidad.')
+        if not tipo or not cantidad:
+            messages.error(request, 'Debes completar tipo de movimiento y cantidad.')
             return redirect('actualizar_stock', producto_id=producto.id)
 
         try:
             cantidad = int(cantidad)
         except ValueError:
-            messages.error(request, 'La cantidad debe ser un numero valido')
+            messages.error(request, 'La cantidad debe ser un número válido.')
             return redirect('actualizar_stock', producto_id=producto.id)
 
         if cantidad < 0:
-            messages.error(request, 'La cantidad del stock no puede ser negativa')
+            messages.error(request, 'La cantidad del stock no puede ser negativa.')
             return redirect('actualizar_stock', producto_id=producto.id)
 
         stock_anterior = producto.stock
@@ -173,15 +183,14 @@ def actualizar_stock(request, producto_id):
             stock_nuevo = stock_anterior - cantidad
 
             if stock_nuevo < 0:
-                messages.error(request, 'El stock no puede quedar negativo, no puedes sacar mas' \
-                'productos de los que hay actualmente')
+                messages.error(request, 'No puedes retirar más productos de los que hay actualmente.')
                 return redirect('actualizar_stock', producto_id=producto.id)
 
         elif tipo == 'correccion':
             stock_nuevo = cantidad
 
         else:
-            messages.error(request, 'El tipo de movimiento no es valido')
+            messages.error(request, 'El tipo de movimiento no es válido.')
             return redirect('actualizar_stock', producto_id=producto.id)
 
         producto.stock = stock_nuevo
@@ -197,7 +206,10 @@ def actualizar_stock(request, producto_id):
             observacion=observacion
         )
 
-        messages.success(request, 'Stock actualizado correctamente')
+        messages.success(
+            request,
+            f'Stock de "{producto.nombre}" actualizado correctamente. Antes: {stock_anterior}, ahora: {stock_nuevo}.'
+        )
         return redirect('inventario')
 
     return render(request, 'actualizar_stock.html', {
@@ -206,6 +218,7 @@ def actualizar_stock(request, producto_id):
         'motivoElecciones': MovimientoInventario.motivoElecciones,
     })
 
+
 @login_required(login_url='login')
 @admin_required
 def eliminar_producto(request, producto_id):
@@ -213,16 +226,23 @@ def eliminar_producto(request, producto_id):
 
     if request.method == 'POST':
         confirmar = request.POST.get('confirmar')
+
         if confirmar == 'si':
+            nombre_producto = producto.nombre
             producto.delete()
+            messages.success(request, f'Producto "{nombre_producto}" eliminado correctamente.')
             return redirect('productos')
-        else:
-            return render(request, 'eliminar_producto.html', 
-                          {'producto': producto,
-                           'error': 'Debes confirmar la eliminación para continuar.'})
-        
+
+        messages.error(request, 'Debes confirmar la eliminación para continuar.')
+        return render(request, 'eliminar_producto.html', {
+            'producto': producto,
+            'error': 'Debes confirmar la eliminación para continuar.'
+        })
+
     return render(request, 'eliminar_producto.html', {
-        'producto': producto})
+        'producto': producto
+    })
+
 
 @login_required(login_url='login')
 @admin_required
@@ -264,7 +284,9 @@ def inventario(request):
     disponibles = Producto.objects.filter(stock__gt=5).count()
     valor_total = sum(producto.precio * producto.stock for producto in todos_productos)
 
-    productos_criticos = Producto.objects.select_related('categoria').filter(stock__lte=5).order_by('stock', 'nombre')[:5]
+    productos_criticos = Producto.objects.select_related('categoria').filter(
+        stock__lte=5
+    ).order_by('stock', 'nombre')[:5]
 
     return render(request, 'inventario.html', {
         'productos': productos_lista,
@@ -280,10 +302,10 @@ def inventario(request):
         'productos_criticos': productos_criticos,
     })
 
-# Todo lo no relacionado con catalogo publico, hacen el codigo arriba de este comentario 
-# de aqui para abajo es backend para la pagina publica del catalogo
 
 def catalogo_publico(request):
     productos = Producto.objects.select_related('categoria').all().order_by('nombre')
 
-    return render(request, 'catalogo.html', {'productos': productos})
+    return render(request, 'catalogo.html', {
+        'productos': productos
+    })

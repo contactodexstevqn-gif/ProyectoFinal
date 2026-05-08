@@ -28,3 +28,36 @@ body {
 a {
     text-decoration: none;
 }
+
+.btn-loading {
+    pointer-events: none;
+    opacity: 0.85;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-loading .btn-spinner {
+    width: 17px;
+    height: 17px;
+    min-width: 17px;
+    border: 2px solid rgba(255, 255, 255, 0.45);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: buttonSpin 0.7s linear infinite;
+}
+
+.btn-loading:disabled {
+    cursor: not-allowed;
+}
+
+@keyframes buttonSpin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}

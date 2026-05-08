@@ -31,7 +31,12 @@
     </p>
 </section>
 
-<form method="POST">
+<form method="POST" class="confirm-form"
+      data-confirm-title="¿Eliminar producto?"
+      data-confirm-text="Esta acción no se puede deshacer."
+      data-confirm-icon="warning"
+      data-confirm-button="Sí, eliminar"
+      data-loading-text="Eliminando...">
     {% csrf_token %}
 
     <label class="confirm-check">

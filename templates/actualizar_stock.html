@@ -124,8 +124,13 @@
             <span class="badge-custom">Historial</span>
         </header>
 
-        <form method="POST" class="stock-adjust-form" id="stockForm">
-            {% csrf_token %}
+        <form method="POST" class="stock-adjust-form confirm-form" id="stockForm"
+            data-confirm-title="¿Guardar ajuste de stock?"
+            data-confirm-text="El movimiento se registrará en el historial del inventario."
+            data-confirm-icon="question"
+            data-confirm-button="Sí, guardar"
+            data-loading-text="Guardando...">
+        {% csrf_token %}
 
             <section class="stock-form-group">
                 <label>Tipo de movimiento</label>
@@ -165,9 +170,9 @@
                 </section>
 
                 <section class="stock-form-group">
-                    <label for="motivo">Motivo</label>
-                    <select name="motivo" id="motivo" required>
-                        <option value="">Selecciona un motivo</option>
+                    <label for="motivo">Motivo (opcional)</label>
+                    <select name="motivo" id="motivo">
+                        <option value="">Sin motivo</option>
                     </select>
                 </section>
             </section>

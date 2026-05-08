@@ -21,7 +21,12 @@
     </a>
 </header>
 
-<form method="POST" class="product-form">
+<form method="POST" class="product-form confirm-form" enctype="multipart/form-data"
+      data-confirm-title="¿Guardar cambios?"
+      data-confirm-text="Se actualizará la información del producto."
+      data-confirm-icon="question"
+      data-confirm-button="Sí, guardar"
+      data-loading-text="Guardando...">
     {% csrf_token %}
 
     <section class="mb-3">
@@ -65,22 +70,13 @@
     </section>
 
     <section class="row g-3 mt-1">
-        <section class="col-md-6">
+        <section class="col-md-12">
             <label class="form-label" for="{{ form.precio.id_for_label }}">Precio</label>
             <section class="input-icon">
                 <i class='bx bx-dollar-circle'></i>
                 {{ form.precio }}
             </section>
             {{ form.precio.errors }}
-        </section>
-
-        <section class="col-md-6">
-            <label class="form-label" for="{{ form.stock.id_for_label }}">Stock</label>
-            <section class="input-icon">
-                <i class='bx bx-layer'></i>
-                {{ form.stock }}
-            </section>
-            {{ form.stock.errors }}
         </section>
     </section>
 

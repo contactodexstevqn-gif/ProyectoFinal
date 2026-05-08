@@ -11,6 +11,7 @@
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 
     <link rel="stylesheet" href="{% static 'form_base.css' %}">
+    <link rel="stylesheet" href="{% static 'sweetalert_custom.css' %}">
 
     {% block estilos %}
     {% endblock %}
@@ -24,6 +25,22 @@
         {% endblock %}
     </section>
 </main>
+
+{% if messages %}
+    <section class="django-messages-container">
+        {% for message in messages %}
+            <article
+                class="django-message-data"
+                data-type="{{ message.tags|escape }}"
+                data-text="{{ message|escape }}">
+            </article>
+        {% endfor %}
+    </section>
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{% static 'sweetalert_global.js' %}"></script>
+<script src="{% static 'confirmaciones.js' %}"></script>
 
 {% block scripts %}
 {% endblock %}
