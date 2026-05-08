@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load formatos %}
 
 {% block titulo %}Productos | Fucsia Boutique{% endblock %}
 
@@ -199,7 +200,7 @@
                         </td>
 
                         <td class="price-cell">
-                            ${{ producto.precio }}
+                            {{ producto.precio|formato_pesos }}
                         </td>
 
                         <td class="stock-column">

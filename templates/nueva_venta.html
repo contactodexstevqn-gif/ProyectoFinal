@@ -1,71 +1,230 @@
-{% extends 'form_base.html' %}
+{% extends 'base.html' %}
 {% load static %}
+{% load l10n %}
+{% load formatos %}
 
-{% block titulo %}Nueva venta | Fucsia Boutique{% endblock %}
+{% block titulo %}Ventas | Fucsia Boutique{% endblock %}
 
 {% block estilos %}
-<link rel="stylesheet" href="{% static 'styles.css' %}">
+<link rel="stylesheet" href="{% static 'usuarios.css' %}">
+<link rel="stylesheet" href="{% static 'productos.css' %}">
+<link rel="stylesheet" href="{% static 'ventas.css' %}">
+{% endblock %}
+
+{% block topbar_info %}
+<section class="topbar-icon">
+    <i class='bx bx-cart'></i>
+</section>
+
+<section>
+    <strong>Gestion de ventas</strong>
+    <span>Registra ventas, controla stock y consulta movimientos recientes</span>
+</section>
 {% endblock %}
 
 {% block contenido %}
 
-<header class="form-header">
-    <section>
-        <h1>Nueva venta</h1>
-        <p>Registra una venta y descuenta automáticamente el stock.</p>
-    </section>
+<section class="page-header">
+    <header>
+        <p>Ventas</p>
+        <h1>{% if es_admin %}Panel de ventas{% else %}Mis ventas{% endif %}</h1>
+    </header>
 
-    <a href="{% url 'dashboard' %}" class="back-btn">
-        <i class='bx bx-arrow-back'></i>
-        Volver
-    </a>
-</header>
-
-{% if error %}
-<section class="alert alert-danger">
-    {{ error }}
+    <nav class="header-actions">
+        <a href="{% url 'historial_ventas' %}" class="btn-outline">
+            <i class='bx bx-time-five'></i>
+            Ver historial
+        </a>
+    </nav>
 </section>
-{% endif %}
 
-<form method="POST"
-      class="confirm-form"
-      data-confirm-title="¿Registrar venta?"
-      data-confirm-text="La venta se guardará y se descontará el stock del producto."
-      data-confirm-icon="question"
-      data-confirm-button="Sí, registrar"
-      data-loading-text="Registrando...">
-    {% csrf_token %}
+<section class="stats-grid sales-stats-grid">
+    <article class="stat-card">
+        <section class="stat-icon">
+            <i class='bx bx-money-withdraw'></i>
+        </section>
 
-    <section class="mb-3">
-        <label class="form-label">Producto</label>
+        <section>
+            <span>Total ventas</span>
+            <h3>{{ total_ventas|formato_pesos }}</h3>
+            <p>Acumulado</p>
+        </section>
+    </article>
 
-        <select name="producto" class="form-control" required>
-            {% for producto in productos %}
-            <option value="{{ producto.id }}" {% if producto.stock == 0 %}disabled{% endif %}>
-                {{ producto.nombre }} - Stock: {{ producto.stock }}
-            </option>
+    <article class="stat-card">
+        <section class="stat-icon">
+            <i class='bx bx-calendar-check'></i>
+        </section>
+
+        <section>
+            <span>Ventas de hoy</span>
+            <h3>{{ total_hoy|formato_pesos }}</h3>
+            <p>Registrado hoy</p>
+        </section>
+    </article>
+
+    <article class="stat-card">
+        <section class="stat-icon">
+            <i class='bx bx-line-chart'></i>
+        </section>
+
+        <section>
+            <span>Este mes</span>
+            <h3>{{ total_mes|formato_pesos }}</h3>
+            <p>Ventas mensuales</p>
+        </section>
+    </article>
+
+    <article class="stat-card">
+        <section class="stat-icon warning">
+            <i class='bx bx-shopping-bag'></i>
+        </section>
+
+        <section>
+            <span>Unidades</span>
+            <h3>{{ unidades_vendidas|formato_numero }}</h3>
+            <p class="warning-text">Productos vendidos</p>
+        </section>
+    </article>
+</section>
+
+<section class="sales-layout-grid">
+
+    <article class="panel-card sale-form-panel">
+        <header class="panel-header">
+            <section>
+                <h2>Nueva venta</h2>
+                <p>Selecciona un producto disponible y registra la cantidad vendida.</p>
+            </section>
+
+            <span class="badge-custom">Registro</span>
+        </header>
+
+        {% if error %}
+        <div class="alert alert-danger sales-alert" role="alert">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST"
+            class="sale-form confirm-form"
+            data-confirm-title="Registrar venta?"
+            data-confirm-text="La venta se guardara y se descontara el stock del producto."
+            data-confirm-icon="question"
+            data-confirm-button="Si, registrar"
+            data-loading-text="Registrando...">
+            {% csrf_token %}
+
+            <section class="sale-field">
+                <label for="producto">Producto</label>
+
+                <section class="sale-select-wrap">
+                    <i class='bx bx-package'></i>
+
+                    <select name="producto" id="producto" class="sale-select" required>
+                        <option value="">Selecciona un producto</option>
+
+                        {% for producto in productos %}
+                        <option
+                            value="{{ producto.id }}"
+                            data-precio="{{ producto.precio|unlocalize }}"
+                            data-stock="{{ producto.stock }}"
+                            {% if producto.stock == 0 %}disabled{% endif %}
+                        >
+                            {{ producto.nombre }} - Talla {{ producto.talla }} - {{ producto.color }} - Stock: {{ producto.stock|formato_numero }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </section>
+            </section>
+
+            <section class="sale-field two-columns">
+                <section>
+                    <label for="cantidad">Cantidad</label>
+
+                    <section class="sale-input-wrap">
+                        <i class='bx bx-hash'></i>
+                        <input type="number" name="cantidad" id="cantidad" min="1" value="1" required>
+                    </section>
+                </section>
+
+                <section class="sale-summary-box">
+                    <span>Total estimado</span>
+                    <strong id="saleTotalPreview">$ 0</strong>
+                    <small id="saleStockPreview">Selecciona producto</small>
+                </section>
+            </section>
+
+            <button type="submit" class="btn-primary sale-submit" {% if not productos_disponibles %}disabled{% endif %}>
+                <i class='bx bx-cart-add'></i>
+                Registrar venta
+            </button>
+
+            {% if not productos_disponibles %}
+            <p class="sale-empty-note">No hay productos con stock disponible para vender.</p>
+            {% endif %}
+        </form>
+    </article>
+
+    <article class="panel-card recent-sales-panel">
+        <header class="panel-header">
+            <section>
+                <h2>Ventas recientes</h2>
+                <p>Ultimos movimientos registrados</p>
+            </section>
+
+            <span class="badge-custom">Recientes</span>
+        </header>
+
+        <section class="recent-sales-list">
+            {% for venta in ventas_recientes %}
+            <article class="recent-sale-item">
+                <section class="recent-sale-icon">
+                    <i class='bx bx-receipt'></i>
+                </section>
+
+                <section class="recent-sale-text">
+                    <strong>{{ venta.producto.nombre }}</strong>
+                    <span>{{ venta.cantidad|formato_numero }} unidad(es) - {{ venta.fecha|date:"d/m/Y h:i A" }}</span>
+
+                    {% if es_admin %}
+                    <small>Vendedor: {{ venta.vendedor.username }}</small>
+                    {% endif %}
+                </section>
+
+                <p>{{ venta.total|formato_pesos }}</p>
+            </article>
+            {% empty %}
+            <article class="sales-empty-state compact">
+                <i class='bx bx-receipt'></i>
+                <strong>Sin ventas recientes</strong>
+                <span>Cuando registres ventas apareceran aqui.</span>
+            </article>
             {% endfor %}
-        </select>
+        </section>
+    </article>
+
+</section>
+
+<section class="panel-card history-cta-panel">
+    <section class="history-cta-icon">
+        <i class='bx bx-time-five'></i>
     </section>
 
-    <section class="mb-3">
-        <label class="form-label">Cantidad</label>
-
-        <input
-            type="number"
-            name="cantidad"
-            class="form-control"
-            min="1"
-            required
-        >
+    <section class="history-cta-text">
+        <h2>Quieres revisar el historial completo?</h2>
+        <p>Consulta todas las ventas registradas, filtra por fecha, producto o vendedor y exporta el reporte.</p>
     </section>
 
-    <section class="form-actions">
-        <button type="submit" class="btn-save">
-            <i class='bx bx-cart'></i>
-            Registrar venta
-        </button>
-    </section>
-</form>
+    <a href="{% url 'historial_ventas' %}" class="btn-primary history-cta-button">
+        <i class='bx bx-right-arrow-alt'></i>
+        Ir al historial de ventas
+    </a>
+</section>
 
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'dashboard.js' %}"></script>
+<script src="{% static 'ventas.js' %}"></script>
 {% endblock %}

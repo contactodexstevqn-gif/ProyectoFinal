@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load formatos %}
 
 {% block titulo %}Ajustar stock | Fucsia Boutique{% endblock %}
 
@@ -101,7 +102,7 @@
 
                     <li>
                         <span>Precio</span>
-                        <strong>${{ producto.precio }}</strong>
+                        <strong>{{ producto.precio|formato_pesos }}</strong>
                     </li>
                 </ul>
             </section>
