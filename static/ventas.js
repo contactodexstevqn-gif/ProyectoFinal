@@ -1,10 +1,10 @@
 (function () {
-    const productSelect = document.getElementById('producto');
-    const quantityInput = document.getElementById('cantidad');
-    const totalPreview = document.getElementById('saleTotalPreview');
-    const stockPreview = document.getElementById('saleStockPreview');
+    const productsList = document.getElementById('vpProductsList');
+    const addProductButton = document.getElementById('vpAddProduct');
+    const totalPreview = document.getElementById('vpTotalPreview');
+    const stockPreview = document.getElementById('vpStockPreview');
 
-    if (!productSelect || !quantityInput || !totalPreview || !stockPreview) {
+    if (!productsList || !addProductButton || !totalPreview || !stockPreview) {
         return;
     }
 
@@ -19,7 +19,9 @@
     });
 
     function limpiarPrecio(valor) {
-        if (!valor) return 0;
+        if (!valor) {
+            return 0;
+        }
 
         valor = String(valor).trim();
 
@@ -34,33 +36,138 @@
         return isNaN(precio) ? 0 : precio;
     }
 
-    function updatePreview() {
-        const selectedOption = productSelect.options[productSelect.selectedIndex];
+    function getRows() {
+        return Array.from(productsList.querySelectorAll('.vp-product-row'));
+    }
 
-        if (!selectedOption || !selectedOption.value) {
-            totalPreview.textContent = moneyFormatter.format(0);
-            stockPreview.textContent = 'Selecciona producto';
-            quantityInput.removeAttribute('max');
-            return;
+    function updateRemoveButtons() {
+        const rows = getRows();
+
+        rows.forEach(function (row) {
+            const removeButton = row.querySelector('.vp-remove-btn');
+
+            if (removeButton) {
+                removeButton.disabled = rows.length === 1;
+            }
+        });
+    }
+
+    function updatePreview() {
+        const rows = getRows();
+
+        let total = 0;
+        let selectedProducts = 0;
+        let stockMessage = 'Selecciona productos';
+        let stockError = false;
+
+        rows.forEach(function (row) {
+            const select = row.querySelector('.vp-product-select');
+            const input = row.querySelector('.vp-quantity-input');
+
+            if (!select || !input) {
+                return;
+            }
+
+            const option = select.options[select.selectedIndex];
+
+            if (!option || !option.value) {
+                return;
+            }
+
+            const price = limpiarPrecio(option.dataset.precio);
+            const stock = Number(option.dataset.stock || 0);
+            const quantity = Number(input.value || 0);
+
+            input.setAttribute('max', String(stock));
+
+            total += price * quantity;
+            selectedProducts += 1;
+
+            if (quantity > stock) {
+                stockError = true;
+                stockMessage = `Hay un producto que supera el stock. Máximo: ${numberFormatter.format(stock)}`;
+            }
+        });
+
+        if (!stockError) {
+            if (selectedProducts === 1) {
+                stockMessage = '1 producto seleccionado';
+            } else if (selectedProducts > 1) {
+                stockMessage = `${selectedProducts} productos seleccionados`;
+            }
         }
 
-        const price = limpiarPrecio(selectedOption.dataset.precio);
-        const stock = Number(selectedOption.dataset.stock || 0);
-        const quantity = Number(quantityInput.value || 0);
-        const total = price * quantity;
-
         totalPreview.textContent = moneyFormatter.format(total);
-        stockPreview.textContent = `Stock disponible: ${numberFormatter.format(stock)}`;
+        stockPreview.textContent = stockMessage;
+    }
 
-        quantityInput.setAttribute('max', String(stock));
+    function resetRow(row) {
+        const select = row.querySelector('.vp-product-select');
+        const input = row.querySelector('.vp-quantity-input');
 
-        if (quantity > stock) {
-            stockPreview.textContent = `Máximo permitido: ${numberFormatter.format(stock)}`;
+        if (select) {
+            select.selectedIndex = 0;
+        }
+
+        if (input) {
+            input.value = 1;
+            input.removeAttribute('max');
         }
     }
 
-    productSelect.addEventListener('change', updatePreview);
-    quantityInput.addEventListener('input', updatePreview);
+    function addRow() {
+        const firstRow = productsList.querySelector('.vp-product-row');
 
+        if (!firstRow) {
+            return;
+        }
+
+        const newRow = firstRow.cloneNode(true);
+
+        resetRow(newRow);
+        productsList.appendChild(newRow);
+
+        updateRemoveButtons();
+        updatePreview();
+    }
+
+    productsList.addEventListener('change', function (event) {
+        if (event.target.classList.contains('vp-product-select')) {
+            updatePreview();
+        }
+    });
+
+    productsList.addEventListener('input', function (event) {
+        if (event.target.classList.contains('vp-quantity-input')) {
+            updatePreview();
+        }
+    });
+
+    productsList.addEventListener('click', function (event) {
+        const removeButton = event.target.closest('.vp-remove-btn');
+
+        if (!removeButton) {
+            return;
+        }
+
+        const rows = getRows();
+
+        if (rows.length <= 1) {
+            return;
+        }
+
+        const row = removeButton.closest('.vp-product-row');
+
+        if (row) {
+            row.remove();
+        }
+
+        updateRemoveButtons();
+        updatePreview();
+    });
+
+    addProductButton.addEventListener('click', addRow);
+
+    updateRemoveButtons();
     updatePreview();
 })();

@@ -102,9 +102,9 @@
 
                                 <strong>
                                     {% if usuario.get_full_name %}
-                                        {{ usuario.get_full_name }}
+                                    {{ usuario.get_full_name }}
                                     {% else %}
-                                        Sin nombre
+                                    Sin nombre
                                     {% endif %}
                                 </strong>
                             </section>
@@ -114,17 +114,17 @@
 
                         <td class="email-cell">
                             {% if usuario.email %}
-                                {{ usuario.email }}
+                            {{ usuario.email }}
                             {% else %}
-                                Sin correo
+                            Sin correo
                             {% endif %}
                         </td>
 
                         <td>
                             {% if usuario.is_active %}
-                                <span class="status active">Activo</span>
+                            <span class="status active">Activo</span>
                             {% else %}
-                                <span class="status inactive">Inactivo</span>
+                            <span class="status inactive">Inactivo</span>
                             {% endif %}
                         </td>
 
@@ -136,9 +136,31 @@
                                     <i class='bx bx-edit-alt'></i>
                                 </button>
 
-                                <button type="button" class="action-btn danger-btn" title="Desactivar usuario">
-                                    <i class='bx bx-user-x'></i>
+                                {% if usuario != request.user %}
+                                <form 
+                                    method="POST" 
+                                    action="{% url 'cambiar_estado_usuario' usuario.id %}"
+                                    class="form-cambiar-estado" 
+                                    data-usuario="{{ usuario.username }}"
+                                    data-accion="{% if usuario.is_active %}desactivar{% else %}activar{% endif %}">
+                                    {% csrf_token %}
+
+                                    {% if usuario.is_active %}
+                                    <button type="submit" class="action-btn danger-btn" title="Desactivar usuario">
+                                        <i class='bx bx-user-x'></i>
+                                    </button>
+                                    {% else %}
+                                    <button type="submit" class="action-btn edit-btn" title="Activar usuario">
+                                        <i class='bx bx-user-check'></i>
+                                    </button>
+                                    {% endif %}
+                                </form>
+                                {% else %}
+                                <button type="button" class="action-btn danger-btn"
+                                    title="No puedes desactivar tu propio usuario" disabled>
+                                    <i class='bx bx-lock-alt'></i>
                                 </button>
+                                {% endif %}
                             </section>
                         </td>
                     </tr>

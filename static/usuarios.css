@@ -824,3 +824,160 @@ body {
         width: 260px;
     }
 }
+.table-actions form {
+    margin: 0;
+}
+
+.action-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.action-btn:disabled:hover {
+    transform: none;
+    border-color: var(--border);
+    background: var(--input-bg);
+    color: var(--muted);
+}
+
+.modal-feedback-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(2px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 22px;
+}
+
+.modal-feedback-card {
+    width: min(640px, 100%);
+    background: #ffffff;
+    border-radius: 26px;
+    padding: 54px 42px 48px;
+    text-align: center;
+    box-shadow: 0 28px 80px rgba(15, 23, 42, 0.22);
+    animation: modalFeedbackIn 0.25s ease;
+}
+
+.modal-feedback-icon {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    margin: 0 auto 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 72px;
+}
+
+.modal-feedback-icon.success {
+    border: 7px solid #dcf2d3;
+    color: #9bd97f;
+}
+
+.modal-feedback-icon.error {
+    border: 7px solid #ffe0e0;
+    color: #ef4444;
+}
+
+.modal-feedback-icon.info {
+    border: 7px solid #dbeafe;
+    color: #3b82f6;
+}
+
+.modal-feedback-card h2 {
+    color: #3f3f46;
+    font-size: 42px;
+    font-weight: 900;
+    margin: 0 0 18px;
+}
+
+.modal-feedback-card p {
+    color: #6b7280;
+    font-size: 22px;
+    font-weight: 500;
+    margin: 0 0 34px;
+}
+
+.modal-feedback-btn {
+    border: none;
+    border-radius: 10px;
+    background: var(--accent);
+    color: #ffffff;
+    padding: 17px 34px;
+    min-width: 150px;
+    font-size: 21px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
+.modal-feedback-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 35px rgba(212, 20, 115, 0.28);
+}
+
+body.dark-mode .modal-feedback-card {
+    background: #111827;
+}
+
+body.dark-mode .modal-feedback-card h2 {
+    color: #ffffff;
+}
+
+body.dark-mode .modal-feedback-card p {
+    color: #cbd5e1;
+}
+
+@keyframes modalFeedbackIn {
+    from {
+        opacity: 0;
+        transform: scale(0.92);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+.modal-confirm-hidden {
+    display: none;
+}
+
+.modal-confirm-actions {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.modal-confirm-cancel {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #ffffff;
+    color: #374151;
+    padding: 17px 34px;
+    min-width: 150px;
+    font-size: 21px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
+.modal-confirm-cancel:hover {
+    transform: translateY(-2px);
+    background: #f3f4f6;
+}
+
+body.dark-mode .modal-confirm-cancel {
+    background: #1f2937;
+    color: #ffffff;
+    border-color: #374151;
+}
+
+body.dark-mode .modal-confirm-cancel:hover {
+    background: #374151;
+}

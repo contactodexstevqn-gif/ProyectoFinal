@@ -160,10 +160,7 @@
     {% if messages %}
     <section class="django-messages-container">
         {% for message in messages %}
-        <article
-            class="django-message-data"
-            data-type="{{ message.tags|escape }}"
-            data-text="{{ message|escape }}">
+        <article class="django-message-data" data-type="{{ message.tags|escape }}" data-text="{{ message|escape }}">
         </article>
         {% endfor %}
     </section>
