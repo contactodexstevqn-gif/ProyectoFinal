@@ -2,10 +2,11 @@
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crear vendedor | Fucsia Boutique</title>
+    <title>Crear vendedor | {{ configuracion_tienda.nombre_tienda|default:'Fucsia Boutique' }}</title>
 
     <link rel="stylesheet" href="{% static 'crear_vendedor.css' %}">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
@@ -37,16 +38,21 @@
                 </section>
             </header>
 
-            <form method="POST" class="seller-form" novalidate>
+            <form method="POST" class="confirm-form"
+                data-confirm-title="¿Registrar cuenta?"
+                data-confirm-text="Se guardarán los datos del usuario y podrá iniciar sesión."
+                data-confirm-icon="question" 
+                data-confirm-button="Sí, registrarme" 
+                data-loading-text="Creando...">
                 {% csrf_token %}
 
                 {% if form.non_field_errors %}
-                    <section class="form-alert">
-                        <i class='bx bx-error-circle'></i>
-                        <section>
-                            {{ form.non_field_errors }}
-                        </section>
+                <section class="form-alert">
+                    <i class='bx bx-error-circle'></i>
+                    <section>
+                        {{ form.non_field_errors }}
                     </section>
+                </section>
                 {% endif %}
 
                 <section class="form-grid">
@@ -106,7 +112,8 @@
                             <i class='bx bx-lock'></i>
                             {{ form.confirmarContra }}
 
-                            <button type="button" class="toggle-password" data-target="{{ form.confirmarContra.id_for_label }}">
+                            <button type="button" class="toggle-password"
+                                data-target="{{ form.confirmarContra.id_for_label }}">
                                 <i class='bx bx-show'></i>
                             </button>
                         </section>
@@ -137,4 +144,5 @@
     </main>
 
 </body>
+
 </html>

@@ -62,9 +62,9 @@ class ProductoForm(forms.ModelForm):
                 'placeholder': 'Cantidad disponible'
             }),
 
-            'imagen': forms.TextInput(attrs={
+            'imagen': forms.ClearableFileInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'URL de la imagen'
+                'accept': 'image/*'
             }),
         }
 
@@ -75,5 +75,17 @@ class ProductoForm(forms.ModelForm):
             'color': 'Color',
             'precio': 'Precio',
             'stock': 'Stock',
-            'imagen': 'Imagen'
+            'imagen': 'Imagen del producto'
         }
+
+
+class ProductoEditForm(ProductoForm):
+    class Meta(ProductoForm.Meta):
+        fields = [
+            'nombre',
+            'categoria',
+            'talla',
+            'color',
+            'precio',
+            'imagen'
+        ]

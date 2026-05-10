@@ -1,0 +1,119 @@
+{% extends 'form_base.html' %}
+{% load static %}
+
+{% block titulo %}Editar producto | {{ configuracion_tienda.nombre_tienda|default:'Fucsia Boutique' }}{% endblock %}
+
+{% block estilos %}
+<link rel="stylesheet" href="{% static 'agregar_producto.css' %}">
+{% endblock %}
+
+{% block contenido %}
+
+<header class="form-header">
+    <section>
+        <h1>Editar producto</h1>
+        <p>Actualiza la información de {{ producto.nombre }}.</p>
+    </section>
+
+    <a href="{% url 'productos' %}" class="back-btn">
+        <i class='bx bx-arrow-back'></i>
+        Volver
+    </a>
+</header>
+
+<form method="POST" enctype="multipart/form-data" class="product-form confirm-form"
+      data-confirm-title="¿Guardar cambios?"
+      data-confirm-text="Se actualizará la información del producto."
+      data-confirm-icon="question"
+      data-confirm-button="Sí, guardar"
+      data-loading-text="Guardando...">
+    {% csrf_token %}
+
+    <section class="mb-3">
+        <label class="form-label" for="{{ form.nombre.id_for_label }}">Nombre</label>
+        <section class="input-icon">
+            <i class='bx bx-package'></i>
+            {{ form.nombre }}
+        </section>
+        {{ form.nombre.errors }}
+    </section>
+
+    <section class="mb-3">
+        <label class="form-label" for="{{ form.categoria.id_for_label }}">Categoría</label>
+        {{ form.categoria }}
+        {{ form.categoria.errors }}
+    </section>
+
+    <a href="{% url 'agregar_categoria' %}" class="btn-create-category">
+        <i class='bx bx-plus'></i>
+        Crear categoría
+    </a>
+
+    <section class="row g-3 mt-1">
+        <section class="col-md-6">
+            <label class="form-label" for="{{ form.talla.id_for_label }}">Talla</label>
+            <section class="input-icon">
+                <i class='bx bx-ruler'></i>
+                {{ form.talla }}
+            </section>
+            {{ form.talla.errors }}
+        </section>
+
+        <section class="col-md-6">
+            <label class="form-label" for="{{ form.color.id_for_label }}">Color</label>
+            <section class="input-icon">
+                <i class='bx bx-palette'></i>
+                {{ form.color }}
+            </section>
+            {{ form.color.errors }}
+        </section>
+    </section>
+
+    <section class="row g-3 mt-1">
+        <section class="col-md-12">
+            <label class="form-label" for="{{ form.precio.id_for_label }}">Precio</label>
+            <section class="input-icon">
+                <i class='bx bx-dollar-circle'></i>
+                {{ form.precio }}
+            </section>
+            {{ form.precio.errors }}
+        </section>
+    </section>
+
+    <section class="mb-3 mt-3">
+        <label class="form-label" for="{{ form.imagen.id_for_label }}">Imagen</label>
+
+        <section class="input-icon">
+            <i class='bx bx-image'></i>
+            {{ form.imagen }}
+        </section>
+        {{ form.imagen.errors }}
+
+        <section class="image-preview-box" id="imagePreviewBox">
+            {% if producto.imagen %}
+                <img id="imagePreview" src="{{ producto.imagen.url }}" alt="Vista previa de {{ producto.nombre }}">
+                <p id="imagePreviewText" style="display: none;">Vista previa de la imagen seleccionada</p>
+            {% else %}
+                <img id="imagePreview" src="" alt="Vista previa de la imagen seleccionada">
+                <p id="imagePreviewText">Vista previa de la imagen seleccionada</p>
+            {% endif %}
+        </section>
+    </section>
+
+    <section class="form-actions">
+        <a href="{% url 'productos' %}" class="btn-cancel">
+            Cancelar
+        </a>
+
+        <button type="submit" class="btn-save">
+            <i class='bx bx-save'></i>
+            Guardar cambios
+        </button>
+    </section>
+</form>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'agregar_producto.js' %}"></script>
+{% endblock %}

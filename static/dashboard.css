@@ -413,6 +413,10 @@ body {
     transition: 0.25s ease;
 }
 
+.stat-card > section:not(.stat-icon) {
+    min-width: 0;
+}
+
 .stat-card:hover {
     transform: translateY(-4px);
 }
@@ -457,9 +461,11 @@ body {
 
 .stat-card h3 {
     color: var(--primary);
-    font-size: 30px;
+    font-size: clamp(24px, 2vw, 30px);
     font-weight: 900;
     margin: 6px 0 0;
+    line-height: 1.05;
+    white-space: nowrap;
 }
 
 .stat-card p {
@@ -583,6 +589,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    gap: 8px;
     width: 100%;
     background: var(--soft-accent);
     color: var(--accent);
@@ -592,6 +599,11 @@ body {
     font-weight: 900;
     margin-top: 26px;
     transition: 0.25s ease;
+}
+
+.history-btn i {
+    font-size: 22px;
+    color: var(--accent);
 }
 
 .history-btn:hover {
@@ -865,4 +877,14 @@ body.dark-mode .stock-low {
     .top-products-table {
         min-width: 720px;
     }
+}
+.dashboard-topbar-spacer {
+    flex: 1;
+}
+
+.sale-item small {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 4px;
 }

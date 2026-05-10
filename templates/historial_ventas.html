@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load formatos %}
+
+{% block titulo %}Historial de ventas | {{ configuracion_tienda.nombre_tienda|default:'Fucsia Boutique' }}{% endblock %}
+
+{% block estilos %}
+<link rel="stylesheet" href="{% static 'usuarios.css' %}">
+<link rel="stylesheet" href="{% static 'productos.css' %}">
+<link rel="stylesheet" href="{% static 'ventas.css' %}">
+{% endblock %}
+
+{% block topbar_info %}
+<section class="topbar-icon">
+    <i class='bx bx-time-five'></i>
+</section>
+
+<section>
+    <strong>Historial de ventas</strong>
+    <span>Consulta, filtra y exporta los movimientos de ventas</span>
+</section>
+{% endblock %}
+
+{% block contenido %}
+
+<section class="page-header">
+    <header>
+        <p>Historial</p>
+        <h1>{% if es_admin %}Historial de ventas{% else %}Mis ventas registradas{% endif %}</h1>
+    </header>
+
+    <nav class="header-actions history-actions">
+        <a href="{% url 'nueva_venta' %}" class="btn-outline">
+            <i class='bx bx-cart-add'></i>
+            Nueva venta
+        </a>
+
+        <a href="{% url 'exportar_ventas' %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}" class="btn-primary">
+            <i class='bx bx-file'></i>
+            Exportar
+        </a>
+    </nav>
+</section>
+
+<section class="stats-grid history-summary-grid">
+    <article class="stat-card">
+        <section class="stat-icon">
+            <i class='bx bx-receipt'></i>
+        </section>
+
+        <section>
+            <span>Ventas encontradas</span>
+            <h3>{{ cantidad_ventas|formato_numero }}</h3>
+            <p>Según filtros</p>
+        </section>
+    </article>
+
+    <article class="stat-card">
+        <section class="stat-icon">
+            <i class='bx bx-money-withdraw'></i>
+        </section>
+
+        <section>
+            <span>Total filtrado</span>
+            <h3>{{ total_filtrado|formato_pesos }}</h3>
+            <p>Valor vendido</p>
+        </section>
+    </article>
+
+    <article class="stat-card">
+        <section class="stat-icon warning">
+            <i class='bx bx-shopping-bag'></i>
+        </section>
+
+        <section>
+            <span>Unidades filtradas</span>
+            <h3>{{ unidades_filtradas|formato_numero }}</h3>
+            <p class="warning-text">Productos vendidos</p>
+        </section>
+    </article>
+</section>
+
+<section class="panel-card products-filter-panel sales-filter-panel">
+    <form method="GET" action="{% url 'historial_ventas' %}" class="products-filters sales-filters">
+
+        <section class="products-search-box">
+            <i class='bx bx-search'></i>
+            <input
+                type="text"
+                name="q"
+                value="{{ query }}"
+                placeholder="Buscar por producto, categoría, talla, color o vendedor..."
+            >
+        </section>
+
+        <section class="filter-group">
+            <input type="date" name="fecha" value="{{ fecha }}" class="sales-date-input">
+        </section>
+
+        {% if es_admin %}
+        <section class="filter-group">
+            <select name="vendedor">
+                <option value="">Todos los vendedores</option>
+
+                {% for vendedor in vendedores %}
+                    {% with vendedor_id_text=vendedor.id|stringformat:"s" %}
+                    <option value="{{ vendedor.id }}" {% if vendedor_id == vendedor_id_text %}selected{% endif %}>
+                        {{ vendedor.username }}
+                    </option>
+                    {% endwith %}
+                {% endfor %}
+            </select>
+        </section>
+        {% endif %}
+
+        <section class="filter-actions">
+            <button type="submit" class="btn-filter">
+                <i class='bx bx-filter-alt'></i>
+                Filtrar
+            </button>
+
+            <a href="{% url 'historial_ventas' %}" class="btn-clear">
+                <i class='bx bx-refresh'></i>
+                Limpiar
+            </a>
+        </section>
+
+    </form>
+</section>
+
+<section class="content-grid products-content-grid">
+    <article class="panel-card products-panel-full sales-table-panel">
+        <header class="panel-header">
+            <section>
+                <h2>Detalle de ventas</h2>
+                <p>Consulta producto, categoría, cantidad, total, vendedor y fecha.</p>
+            </section>
+
+            <span class="badge-custom">Historial</span>
+        </header>
+
+        <section class="table-responsive products-table-wrapper">
+            <table class="products-table sales-table">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Categoría</th>
+                        <th>Cantidad</th>
+                        <th>Total</th>
+                        {% if es_admin %}<th>Vendedor</th>{% endif %}
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for venta in ventas %}
+                    <tr>
+                        <td>
+                            <section class="product-info">
+                                <span class="product-image-box">
+                                    {% if venta.producto.imagen %}
+                                        <img src="{{ venta.producto.imagen.url }}" alt="{{ venta.producto.nombre }}">
+                                    {% else %}
+                                        <i class='bx bx-package'></i>
+                                    {% endif %}
+                                </span>
+
+                                <section class="product-text">
+                                    <strong>{{ venta.producto.nombre }}</strong>
+                                    <small>{{ venta.producto.color }} · Talla {{ venta.producto.talla }}</small>
+                                </section>
+                            </section>
+                        </td>
+
+                        <td>
+                            {% if venta.producto.categoria %}
+                                {{ venta.producto.categoria.nombre }}
+                            {% else %}
+                                Sin categoría
+                            {% endif %}
+                        </td>
+
+                        <td class="stock-column">
+                            <span class="sold-badge">{{ venta.cantidad|formato_numero }}</span>
+                        </td>
+
+                        <td class="price-cell">{{ venta.total|formato_pesos }}</td>
+
+                        {% if es_admin %}
+                        <td>{{ venta.vendedor.username }}</td>
+                        {% endif %}
+
+                        <td>{{ venta.fecha|date:"d/m/Y h:i A" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="{% if es_admin %}6{% else %}5{% endif %}" class="empty-row">
+                            No hay ventas registradas con estos filtros.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    </article>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'dashboard.js' %}"></script>
+{% endblock %}

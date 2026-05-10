@@ -34,6 +34,7 @@ def cerrarSesion(request):
 @admin_required
 def gestionUsuarios(request):
     usuarios = User.objects.filter(is_superuser=False)
+
     total_usuarios = usuarios.count()
     usuarios_activos = usuarios.filter(is_active=True).count()
     usuarios_inactivos = usuarios.filter(is_active=False).count()
@@ -65,6 +66,7 @@ def crearVendedor(request):
             vendedor.is_active = True
 
             vendedor.save()
+
             grupo_vendedor = Group.objects.get(name=GRUPO_VENDEDOR)
             vendedor.groups.add(grupo_vendedor)
 
