@@ -42,3 +42,42 @@ if (themeToggle && themeIcon) {
         applyTheme(nextTheme);
     });
 }
+
+const btnExportar = document.getElementById('btnExportar');
+
+if (btnExportar) {
+    btnExportar.addEventListener('click', () => {
+        const tabla = document.getElementById('tablaUsuarios');
+
+        if (!tabla) return;
+
+        let csv = [];
+        const filas = tabla.querySelectorAll('tr');
+
+        filas.forEach(fila => {
+            const columnas = fila.querySelectorAll('th, td');
+            let datos = [];
+
+            columnas.forEach((columna, index) => {
+                if (index !== columnas.length - 1) {
+                    datos.push(`"${columna.innerText.trim().replace(/"/g, '""')}"`);
+                }
+            });
+
+            csv.push(datos.join(','));
+        });
+
+        const archivo = new Blob([csv.join('\n')], {
+            type: 'text/csv;charset=utf-8;'
+        });
+
+        const url = URL.createObjectURL(archivo);
+        const enlace = document.createElement('a');
+
+        enlace.href = url;
+        enlace.download = 'usuarios_fucsia_boutique.csv';
+        enlace.click();
+
+        URL.revokeObjectURL(url);
+    });
+}

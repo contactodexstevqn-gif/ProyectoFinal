@@ -37,7 +37,7 @@
 
         <a href="{% url 'exportar_ventas' %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}" class="btn-primary">
             <i class='bx bx-file'></i>
-            Exportar
+            Exportar Excel
         </a>
     </nav>
 </section>
@@ -62,7 +62,7 @@
 
         <section>
             <span>Total filtrado</span>
-            <h3>{{ total_filtrado|formato_pesos }}</h3>
+            <h3>${{ total_filtrado|formato_pesos }}</h3>
             <p>Valor vendido</p>
         </section>
     </article>
@@ -105,7 +105,11 @@
                 {% for vendedor in vendedores %}
                     {% with vendedor_id_text=vendedor.id|stringformat:"s" %}
                     <option value="{{ vendedor.id }}" {% if vendedor_id == vendedor_id_text %}selected{% endif %}>
-                        {{ vendedor.username }}
+                        {% if vendedor.get_full_name %}
+                            {{ vendedor.get_full_name }} · {{ vendedor.username }}
+                        {% else %}
+                            {{ vendedor.username }}
+                        {% endif %}
                     </option>
                     {% endwith %}
                 {% endfor %}
@@ -184,7 +188,7 @@
                             <span class="sold-badge">{{ venta.cantidad|formato_numero }}</span>
                         </td>
 
-                        <td class="price-cell">{{ venta.total|formato_pesos }}</td>
+                        <td class="price-cell">${{ venta.total|formato_pesos }}</td>
 
                         {% if es_admin %}
                         <td>{{ venta.vendedor.username }}</td>

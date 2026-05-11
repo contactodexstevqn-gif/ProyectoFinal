@@ -8,7 +8,7 @@
 {% block estilos %}
 <link rel="stylesheet" href="{% static 'usuarios.css' %}">
 <link rel="stylesheet" href="{% static 'productos.css' %}">
-<link rel="stylesheet" href="{% static 'ventas.css' %}">
+<link rel="stylesheet" href="{% static 'ventas.css' %}?v=ventas-multiples-1">
 {% endblock %}
 
 {% block topbar_info %}
@@ -17,7 +17,7 @@
 </section>
 
 <section>
-    <strong>Gestion de ventas</strong>
+    <strong>Gestión de ventas</strong>
     <span>Registra ventas, controla stock y consulta movimientos recientes</span>
 </section>
 {% endblock %}
@@ -43,10 +43,9 @@
         <section class="stat-icon">
             <i class='bx bx-money-withdraw'></i>
         </section>
-
         <section>
             <span>Total ventas</span>
-            <h3>{{ total_ventas|formato_pesos }}</h3>
+            <h3>${{ total_ventas|formato_pesos }}</h3>
             <p>Acumulado</p>
         </section>
     </article>
@@ -55,10 +54,9 @@
         <section class="stat-icon">
             <i class='bx bx-calendar-check'></i>
         </section>
-
         <section>
             <span>Ventas de hoy</span>
-            <h3>{{ total_hoy|formato_pesos }}</h3>
+            <h3>${{ total_hoy|formato_pesos }}</h3>
             <p>Registrado hoy</p>
         </section>
     </article>
@@ -67,10 +65,9 @@
         <section class="stat-icon">
             <i class='bx bx-line-chart'></i>
         </section>
-
         <section>
             <span>Este mes</span>
-            <h3>{{ total_mes|formato_pesos }}</h3>
+            <h3>${{ total_mes|formato_pesos }}</h3>
             <p>Ventas mensuales</p>
         </section>
     </article>
@@ -79,7 +76,6 @@
         <section class="stat-icon warning">
             <i class='bx bx-shopping-bag'></i>
         </section>
-
         <section>
             <span>Unidades</span>
             <h3>{{ unidades_vendidas|formato_numero }}</h3>
@@ -94,7 +90,7 @@
         <header class="panel-header">
             <section>
                 <h2>Nueva venta</h2>
-                <p>Selecciona un producto disponible y registra la cantidad vendida.</p>
+                <p>Selecciona un vendedor y agrega uno o varios productos a la venta.</p>
             </section>
 
             <span class="badge-custom">Registro</span>
@@ -106,56 +102,98 @@
         </div>
         {% endif %}
 
-        <form method="POST"
-            class="sale-form confirm-form"
-            data-confirm-title="Registrar venta?"
-            data-confirm-text="La venta se guardara y se descontara el stock del producto."
-            data-confirm-icon="question"
-            data-confirm-button="Si, registrar"
-            data-loading-text="Registrando...">
+        <form method="POST" class="vp-form" id="ventaForm">
             {% csrf_token %}
 
-            <section class="sale-field">
-                <label for="producto">Producto</label>
+            {% if es_admin %}
+            <section class="vp-field">
+                <label for="vendedor">Vendedor que realizó la venta</label>
 
-                <section class="sale-select-wrap">
-                    <i class='bx bx-package'></i>
+                <section class="vp-control">
+                    <i class='bx bx-user'></i>
 
-                    <select name="producto" id="producto" class="sale-select" required>
-                        <option value="">Selecciona un producto</option>
+                    <select name="vendedor" id="vendedor" required>
+                        <option value="">Selecciona el vendedor</option>
 
-                        {% for producto in productos %}
-                        <option
-                            value="{{ producto.id }}"
-                            data-precio="{{ producto.precio|unlocalize }}"
-                            data-stock="{{ producto.stock }}"
-                            {% if producto.stock == 0 %}disabled{% endif %}
-                        >
-                            {{ producto.nombre }} - Talla {{ producto.talla }} - {{ producto.color }} - Stock: {{ producto.stock|formato_numero }}
-                        </option>
+                        {% for vendedor in vendedores_registrados %}
+                            {% with vendedor_id_text=vendedor.id|stringformat:"s" %}
+                            <option value="{{ vendedor.id }}" {% if vendedor_id_seleccionado == vendedor_id_text %}selected{% endif %}>
+                                {% if vendedor.get_full_name %}
+                                    {{ vendedor.get_full_name }} · {{ vendedor.username }}
+                                {% else %}
+                                    {{ vendedor.username }}
+                                {% endif %}
+                            </option>
+                            {% endwith %}
+                        {% empty %}
+                            <option value="" disabled>No hay vendedores registrados</option>
                         {% endfor %}
                     </select>
                 </section>
             </section>
+            {% endif %}
 
-            <section class="sale-field two-columns">
-                <section>
-                    <label for="cantidad">Cantidad</label>
-
-                    <section class="sale-input-wrap">
-                        <i class='bx bx-hash'></i>
-                        <input type="number" name="cantidad" id="cantidad" min="1" value="1" required>
+            <section class="vp-products-card">
+                <header class="vp-products-header">
+                    <section>
+                        <h3>Productos de la venta</h3>
+                        <p>Agrega todos los productos que compró el cliente.</p>
                     </section>
-                </section>
 
-                <section class="sale-summary-box">
-                    <span>Total estimado</span>
-                    <strong id="saleTotalPreview">$ 0</strong>
-                    <small id="saleStockPreview">Selecciona producto</small>
+                    <button type="button" class="vp-add-btn" id="vpAddProduct">
+                        <i class='bx bx-plus'></i>
+                        Agregar producto
+                    </button>
+                </header>
+
+                <section class="vp-products-list" id="vpProductsList">
+                    <article class="vp-product-row">
+                        <section class="vp-product-field vp-product-main">
+                            <label>Producto</label>
+
+                            <section class="vp-control">
+                                <i class='bx bx-package'></i>
+
+                                <select name="producto" class="vp-product-select" required>
+                                    <option value="">Selecciona un producto</option>
+
+                                    {% for producto in productos %}
+                                    <option
+                                        value="{{ producto.id }}"
+                                        data-precio="{{ producto.precio|unlocalize }}"
+                                        data-stock="{{ producto.stock }}"
+                                        {% if producto.stock == 0 %}disabled{% endif %}
+                                    >
+                                        {{ producto.nombre }} · Talla {{ producto.talla }} · {{ producto.color }} · Stock: {{ producto.stock|formato_numero }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </section>
+                        </section>
+
+                        <section class="vp-product-field vp-product-qty">
+                            <label>Cantidad</label>
+
+                            <section class="vp-control">
+                                <i class='bx bx-hash'></i>
+                                <input type="number" name="cantidad" class="vp-quantity-input" min="1" value="1" required>
+                            </section>
+                        </section>
+
+                        <button type="button" class="vp-remove-btn" title="Quitar producto" disabled>
+                            <i class='bx bx-trash'></i>
+                        </button>
+                    </article>
                 </section>
             </section>
 
-            <button type="submit" class="btn-primary sale-submit" {% if not productos_disponibles %}disabled{% endif %}>
+            <section class="vp-total-card">
+                <span>Total estimado</span>
+                <strong id="vpTotalPreview">$0</strong>
+                <small id="vpStockPreview">Selecciona productos</small>
+            </section>
+
+            <button type="submit" class="btn-primary vp-submit" {% if not productos_disponibles %}disabled{% endif %}>
                 <i class='bx bx-cart-add'></i>
                 Registrar venta
             </button>
@@ -170,7 +208,7 @@
         <header class="panel-header">
             <section>
                 <h2>Ventas recientes</h2>
-                <p>Ultimos movimientos registrados</p>
+                <p>Últimos movimientos registrados</p>
             </section>
 
             <span class="badge-custom">Recientes</span>
@@ -185,20 +223,20 @@
 
                 <section class="recent-sale-text">
                     <strong>{{ venta.producto.nombre }}</strong>
-                    <span>{{ venta.cantidad|formato_numero }} unidad(es) - {{ venta.fecha|date:"d/m/Y h:i A" }}</span>
+                    <span>{{ venta.cantidad|formato_numero }} unidad(es) · {{ venta.fecha|date:"d/m/Y h:i A" }}</span>
 
                     {% if es_admin %}
                     <small>Vendedor: {{ venta.vendedor.username }}</small>
                     {% endif %}
                 </section>
 
-                <p>{{ venta.total|formato_pesos }}</p>
+                <p>${{ venta.total|formato_pesos }}</p>
             </article>
             {% empty %}
             <article class="sales-empty-state compact">
                 <i class='bx bx-receipt'></i>
                 <strong>Sin ventas recientes</strong>
-                <span>Cuando registres ventas apareceran aqui.</span>
+                <span>Cuando registres ventas aparecerán aquí.</span>
             </article>
             {% endfor %}
         </section>
@@ -212,7 +250,7 @@
     </section>
 
     <section class="history-cta-text">
-        <h2>Quieres revisar el historial completo?</h2>
+        <h2>¿Quieres revisar el historial completo?</h2>
         <p>Consulta todas las ventas registradas, filtra por fecha, producto o vendedor y exporta el reporte.</p>
     </section>
 
@@ -226,5 +264,5 @@
 
 {% block scripts %}
 <script src="{% static 'dashboard.js' %}"></script>
-<script src="{% static 'ventas.js' %}"></script>
+<script src="{% static 'ventas.js' %}?v=ventas-multiples-1"></script>
 {% endblock %}

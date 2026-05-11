@@ -6,4 +6,5 @@ urlpatterns = [
     path('logout/', views.cerrarSesion, name='logout'),
     path('usuarios/', views.gestionUsuarios, name='usuarios'),
     path('usuarios/crear/', views.crearVendedor, name='crear_vendedor'),
+    path('usuarios/<int:usuario_id>/cambiar-estado/', views.cambiarEstadoUsuario, name='cambiar_estado_usuario'),
 ]
