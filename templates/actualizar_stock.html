@@ -68,8 +68,13 @@
 
         <section class="stock-product-main">
             <span class="stock-product-image">
-                {% if producto.imagen %}
-                    <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+                {% if producto.imagen_final_url %}
+                    <img
+                        src="{{ producto.imagen_final_url }}"
+                        alt="{{ producto.nombre }}"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                    >
+                    <i class='bx bx-package product-fallback-icon' style="display: none;"></i>
                 {% else %}
                     <i class='bx bx-package'></i>
                 {% endif %}
@@ -110,7 +115,7 @@
 
         <section class="stock-current-box">
             <span>Stock actual</span>
-            <strong id="stockActual" data-stock="{{ producto.stock }}">{{ producto.stock }}</strong>
+            <strong id="stockActual" data-stock="{{ producto.stock }}">{{ producto.stock|formato_numero }}</strong>
             <p>Este valor cambiará cuando guardes el ajuste.</p>
         </section>
     </article>
@@ -171,7 +176,7 @@
                 </section>
 
                 <section class="stock-form-group">
-                    <label for="motivo">Motivo (opcional)</label>
+                    <label for="motivo">Motivo</label>
                     <select name="motivo" id="motivo">
                         <option value="">Sin motivo</option>
                     </select>
@@ -191,12 +196,12 @@
             <section class="stock-result-box">
                 <article>
                     <span>Stock anterior</span>
-                    <strong>{{ producto.stock }}</strong>
+                    <strong>{{ producto.stock|formato_numero }}</strong>
                 </article>
 
                 <article>
                     <span>Nuevo stock estimado</span>
-                    <strong id="stockNuevo">{{ producto.stock }}</strong>
+                    <strong id="stockNuevo">{{ producto.stock|formato_numero }}</strong>
                 </article>
             </section>
 
@@ -225,6 +230,81 @@
         </form>
     </article>
 
+</section>
+
+<section class="panel-card stock-history-card">
+    <header class="panel-header">
+        <section>
+            <h2>Historial de este producto</h2>
+            <p>Últimos movimientos registrados para {{ producto.nombre }}</p>
+        </section>
+
+        <span class="badge-custom">Últimos 10</span>
+    </header>
+
+    <section class="table-responsive stock-history-wrapper">
+        <table class="products-table stock-history-table">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Cantidad</th>
+                    <th>Stock anterior</th>
+                    <th>Stock nuevo</th>
+                    <th>Motivo</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for movimiento in movimientos_producto %}
+                <tr>
+                    <td>
+                        {% if movimiento.tipo == 'entrada' %}
+                            <span class="movement-badge movement-entry">
+                                <i class='bx bx-plus-circle'></i>
+                                Entrada
+                            </span>
+                        {% elif movimiento.tipo == 'salida' %}
+                            <span class="movement-badge movement-exit">
+                                <i class='bx bx-minus-circle'></i>
+                                Salida
+                            </span>
+                        {% else %}
+                            <span class="movement-badge movement-fix">
+                                <i class='bx bx-edit-alt'></i>
+                                Corrección
+                            </span>
+                        {% endif %}
+                    </td>
+
+                    <td>{{ movimiento.cantidad|formato_numero }}</td>
+                    <td>{{ movimiento.stock_anterior|formato_numero }}</td>
+                    <td>{{ movimiento.stock_nuevo|formato_numero }}</td>
+
+                    <td>
+                        {% if movimiento.motivo %}
+                            {{ movimiento.get_motivo_display }}
+                        {% else %}
+                            Sin motivo
+                        {% endif %}
+
+                        {% if movimiento.observacion %}
+                            <small class="movement-note">{{ movimiento.observacion }}</small>
+                        {% endif %}
+                    </td>
+
+                    <td>{{ movimiento.fecha|date:"d/m/Y h:i A" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="empty-row">
+                        Este producto todavía no tiene movimientos registrados.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
 </section>
 
 {% endblock %}
