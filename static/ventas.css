@@ -4,44 +4,38 @@
 
 .sales-layout-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(360px, 0.85fr);
+    grid-template-columns: minmax(0, 1.1fr) minmax(390px, 0.9fr);
     gap: 24px;
     margin-bottom: 24px;
 }
 
 .sale-form-panel,
 .recent-sales-panel {
-    padding: 26px 28px;
+    padding: 28px;
 }
 
 .sales-alert {
     border-radius: 16px;
-    font-weight: 700;
+    font-weight: 800;
 }
 
-.sale-form {
+.vp-form {
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 20px;
 }
 
-.sale-field label {
+.vp-field label,
+.vp-product-field label {
     display: block;
     color: var(--secondary);
+    font-size: 15px;
     font-weight: 900;
     margin-bottom: 8px;
 }
 
-.sale-field.two-columns {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 230px;
-    gap: 16px;
-    align-items: end;
-}
-
-.sale-select-wrap,
-.sale-input-wrap {
-    min-height: 56px;
+.vp-control {
+    min-height: 58px;
     border: 1px solid var(--border);
     background: var(--input-bg);
     border-radius: 16px;
@@ -52,67 +46,180 @@
     transition: 0.25s ease;
 }
 
-.sale-select-wrap:focus-within,
-.sale-input-wrap:focus-within {
+.vp-control:focus-within {
     border-color: var(--accent);
     box-shadow: 0 0 0 4px rgba(212, 20, 115, 0.1);
     background: var(--card);
 }
 
-.sale-select-wrap i,
-.sale-input-wrap i {
+.vp-control i {
     color: var(--accent);
     font-size: 22px;
     flex-shrink: 0;
 }
 
-.sale-select,
-.sale-input-wrap input {
+.vp-control select,
+.vp-control input {
     width: 100%;
-    min-height: 54px;
+    min-height: 56px;
     border: none;
     outline: none;
     background: transparent;
     color: var(--text);
     font-size: 15px;
+    font-weight: 800;
+    appearance: none;
+}
+
+.vp-control input {
+    appearance: auto;
+}
+
+.vp-control select option {
+    background: #ffffff;
+    color: #111827;
     font-weight: 700;
 }
 
-.sale-select option:disabled {
+.vp-control select option:disabled {
     color: #9ca3af;
 }
 
-.sale-summary-box {
-    min-height: 96px;
+.vp-products-card {
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+    border-radius: 22px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.vp-products-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 18px;
+}
+
+.vp-products-header h3 {
+    color: var(--primary);
+    font-size: 25px;
+    font-weight: 900;
+    margin: 0 0 4px;
+}
+
+.vp-products-header p {
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.vp-add-btn {
+    min-height: 52px;
+    border: 1px solid var(--accent);
+    background: var(--card);
+    color: var(--accent);
+    border-radius: 16px;
+    padding: 0 22px;
+    font-size: 16px;
+    font-weight: 900;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: 0.25s ease;
+    white-space: nowrap;
+    font-family: inherit;
+}
+
+.vp-add-btn:hover {
+    background: var(--soft-accent);
+    transform: translateY(-2px);
+}
+
+.vp-products-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.vp-product-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 170px 58px;
+    gap: 14px;
+    align-items: end;
+    padding: 16px;
+    border-radius: 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+}
+
+.vp-product-field {
+    min-width: 0;
+}
+
+.vp-remove-btn {
+    width: 58px;
+    height: 58px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    cursor: pointer;
+    transition: 0.25s ease;
+    font-family: inherit;
+}
+
+.vp-remove-btn:hover {
+    background: var(--soft-accent);
+    border-color: var(--accent);
+    transform: translateY(-2px);
+}
+
+.vp-remove-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.vp-total-card {
+    min-height: 105px;
     border-radius: 18px;
     background: var(--soft-accent);
-    padding: 16px;
+    padding: 18px;
     display: flex;
     flex-direction: column;
     justify-content: center;
 }
 
-.sale-summary-box span,
-.sale-summary-box small {
+.vp-total-card span,
+.vp-total-card small {
     color: var(--muted);
     font-size: 13px;
     font-weight: 800;
 }
 
-.sale-summary-box strong {
+.vp-total-card strong {
     color: var(--accent);
-    font-size: 27px;
+    font-size: 32px;
     font-weight: 900;
     line-height: 1.1;
     margin: 3px 0;
 }
 
-.sale-submit {
+.vp-submit {
     width: 100%;
     border: none;
 }
 
-.sale-submit:disabled {
+.vp-submit:disabled {
     opacity: 0.55;
     cursor: not-allowed;
     transform: none;
@@ -226,6 +333,60 @@
     font-weight: 700;
 }
 
+.history-cta-panel {
+    display: grid;
+    grid-template-columns: 70px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 20px;
+    padding: 26px 28px;
+    margin-bottom: 24px;
+}
+
+.history-cta-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 22px;
+    background: var(--soft-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.history-cta-icon i {
+    color: var(--accent);
+    font-size: 34px;
+}
+
+.history-cta-text h2 {
+    margin: 0 0 6px;
+    color: var(--primary);
+    font-size: 25px;
+    font-weight: 900;
+}
+
+.history-cta-text p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.history-cta-button {
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.history-summary-grid {
+    grid-template-columns: repeat(3, 1fr);
+    margin-bottom: 24px;
+}
+
+.history-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
 .sales-filter-panel {
     margin-bottom: 24px;
 }
@@ -290,16 +451,49 @@ body.dark-mode .sale-form-panel,
 body.dark-mode .recent-sales-panel,
 body.dark-mode .sales-filter-panel,
 body.dark-mode .sales-table-panel,
-body.dark-mode .recent-sale-item {
+body.dark-mode .recent-sale-item,
+body.dark-mode .history-cta-panel,
+body.dark-mode .vp-products-card,
+body.dark-mode .vp-product-row {
     background: var(--card);
     border-color: var(--border);
 }
 
-body.dark-mode .sale-select-wrap,
-body.dark-mode .sale-input-wrap,
+body.dark-mode .vp-control,
 body.dark-mode .sales-date-input,
 body.dark-mode .recent-sale-item {
     background: var(--input-bg);
+}
+
+body.dark-mode .vp-control select,
+body.dark-mode .vp-control input {
+    color: #ffffff;
+}
+
+body.dark-mode .vp-control select option {
+    background: #1f2937;
+    color: #ffffff;
+}
+
+body.dark-mode .vp-control select option:disabled {
+    color: #9ca3af;
+    background: #111827;
+}
+
+body.dark-mode .vp-remove-btn,
+body.dark-mode .vp-add-btn {
+    background: var(--input-bg);
+    border-color: var(--border);
+}
+
+@media (max-width: 1300px) {
+    .vp-product-row {
+        grid-template-columns: 1fr;
+    }
+
+    .vp-remove-btn {
+        width: 100%;
+    }
 }
 
 @media (max-width: 1200px) {
@@ -324,137 +518,6 @@ body.dark-mode .recent-sale-item {
     }
 }
 
-@media (max-width: 768px) {
-    .sales-stats-grid,
-    .sales-filters,
-    .sale-field.two-columns {
-        grid-template-columns: 1fr;
-    }
-
-    .sale-form-panel,
-    .recent-sales-panel {
-        padding: 22px;
-    }
-
-    .recent-sale-item {
-        grid-template-columns: 44px minmax(0, 1fr);
-    }
-
-    .recent-sale-item p {
-        grid-column: 2;
-    }
-}
-
-@media (max-width: 576px) {
-    .sale-form-panel,
-    .recent-sales-panel {
-        padding: 18px;
-    }
-
-    .sale-summary-box strong {
-        font-size: 24px;
-    }
-}
-
-.sale-select option {
-    background: #ffffff;
-    color: #111827;
-    font-weight: 700;
-}
-
-body.dark-mode .sale-select {
-    color: #ffffff;
-}
-
-body.dark-mode .sale-select option {
-    background: #1f2937;
-    color: #ffffff;
-}
-
-body.dark-mode .sale-select option:disabled {
-    color: #9ca3af;
-    background: #111827;
-}
-
-.history-cta-panel {
-    display: grid;
-    grid-template-columns: 70px minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 20px;
-    padding: 26px 28px;
-    margin-bottom: 24px;
-}
-
-.history-cta-icon {
-    width: 70px;
-    height: 70px;
-    border-radius: 22px;
-    background: var(--soft-accent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.history-cta-icon i {
-    color: var(--accent);
-    font-size: 34px;
-}
-
-.history-cta-text h2 {
-    margin: 0 0 6px;
-    color: var(--primary);
-    font-size: 25px;
-    font-weight: 900;
-}
-
-.history-cta-text p {
-    margin: 0;
-    color: var(--muted);
-    font-size: 15px;
-    font-weight: 700;
-}
-
-.history-cta-button {
-    text-decoration: none;
-    white-space: nowrap;
-}
-
-.history-summary-grid {
-    grid-template-columns: repeat(3, 1fr);
-    margin-bottom: 24px;
-}
-
-.history-actions {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-.sale-select option {
-    background: #ffffff;
-    color: #111827;
-    font-weight: 700;
-}
-
-body.dark-mode .sale-select {
-    color: #ffffff;
-}
-
-body.dark-mode .sale-select option {
-    background: #1f2937;
-    color: #ffffff;
-}
-
-body.dark-mode .sale-select option:disabled {
-    color: #9ca3af;
-    background: #111827;
-}
-
-body.dark-mode .history-cta-panel {
-    background: var(--card);
-    border-color: var(--border);
-}
-
 @media (max-width: 992px) {
     .history-cta-panel {
         grid-template-columns: 1fr;
@@ -472,5 +535,48 @@ body.dark-mode .history-cta-panel {
     .history-cta-button {
         width: 100%;
         justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .sales-stats-grid,
+    .sales-filters {
+        grid-template-columns: 1fr;
+    }
+
+    .sale-form-panel,
+    .recent-sales-panel {
+        padding: 22px;
+    }
+
+    .recent-sale-item {
+        grid-template-columns: 44px minmax(0, 1fr);
+    }
+
+    .recent-sale-item p {
+        grid-column: 2;
+    }
+
+    .vp-products-header {
+        grid-template-columns: 1fr;
+    }
+
+    .vp-add-btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .sale-form-panel,
+    .recent-sales-panel {
+        padding: 18px;
+    }
+
+    .vp-total-card strong {
+        font-size: 24px;
+    }
+
+    .vp-products-header h3 {
+        font-size: 21px;
     }
 }

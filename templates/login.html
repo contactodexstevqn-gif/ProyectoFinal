@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar sesión | Fucsia Boutique</title>
+    <title>Iniciar sesión | {{ configuracion_tienda.nombre_tienda|default:'Fucsia Boutique' }}</title>
 
     <link rel="stylesheet" href="{% static 'login.css' %}">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
@@ -23,12 +23,12 @@
 
             <header class="login-brand">
                 <figure class="logo-wrapper">
-                    <img src="{% static 'img/logo.png' %}" alt="Logo Fucsia Boutique" class="company-logo">
+                    <img src="{% static 'img/logo.png' %}" alt="Logo {{ configuracion_tienda.nombre_tienda|default:'Fucsia Boutique' }}" class="company-logo">
                 </figure>
 
                 <section class="brand-text">
                     <h1 id="login-title">Bienvenido</h1>
-                    <p>Accede al sistema de Fucsia Boutique</p>
+                    <p>Accede al sistema de {{ configuracion_tienda.nombre_tienda|default:'Fucsia Boutique' }}</p>
                 </section>
             </header>
 

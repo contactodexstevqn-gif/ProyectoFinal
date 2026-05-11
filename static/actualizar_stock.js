@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", function () {
         ],
         salida: [
             { valor: "venta_manual", texto: "Venta manual" },
-            { valor: "producto_dañado", texto: "Producto dañado" },
+            { valor: "producto_danado", texto: "Producto dañado" },
             { valor: "perdida", texto: "Pérdida" },
             { valor: "robo", texto: "Robo" },
             { valor: "devolucion_proveedor", texto: "Devolución a proveedor" }

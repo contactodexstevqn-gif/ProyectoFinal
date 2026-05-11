@@ -1,5 +1,6 @@
 from django import forms
-from .models import Producto, Categoria
+
+from .models import Categoria, Producto
 
 
 class CategoriaForm(forms.ModelForm):
@@ -33,49 +34,43 @@ class ProductoForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'Nombre del producto'
             }),
-
             'categoria': forms.Select(attrs={
                 'class': 'form-select'
             }),
-
             'talla': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Ej: S, M, L'
             }),
-
             'color': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Ej: Negro, Rosado, Blanco'
             }),
-
             'precio': forms.NumberInput(attrs={
                 'class': 'form-control',
                 'min': '1000',
                 'step': '1000',
                 'placeholder': 'Ej: 50000'
             }),
-
             'stock': forms.NumberInput(attrs={
                 'class': 'form-control',
                 'min': '0',
                 'step': '1',
                 'placeholder': 'Cantidad disponible'
             }),
-
-            'imagen': forms.TextInput(attrs={
+            'imagen': forms.ClearableFileInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'URL de la imagen'
+                'accept': 'image/*'
             }),
         }
 
         labels = {
             'nombre': 'Nombre',
-            'categoria': 'Categoría',
+            'categoria': 'Categoria',
             'talla': 'Talla',
             'color': 'Color',
             'precio': 'Precio',
             'stock': 'Stock',
-            'imagen': 'Imagen'
+            'imagen': 'Imagen del producto'
         }
 
 

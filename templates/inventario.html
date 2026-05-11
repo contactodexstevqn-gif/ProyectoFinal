@@ -2,7 +2,7 @@
 {% load static %}
 {% load formatos %}
 
-{% block titulo %}Inventario | Fucsia Boutique{% endblock %}
+{% block titulo %}Inventario | {{ configuracion_tienda.nombre_tienda|default:'Fucsia Boutique' }}{% endblock %}
 
 {% block estilos %}
 <link rel="stylesheet" href="{% static 'usuarios.css' %}">
@@ -134,7 +134,7 @@
                 <section class="product-info">
                     <span class="product-image-box">
                         {% if producto.imagen %}
-                            <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}">
+                            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
                         {% else %}
                             <i class='bx bx-package'></i>
                         {% endif %}
@@ -156,7 +156,7 @@
                 <section class="inventory-priority-meta">
                     {% if producto.stock <= 0 %}
                         <span class="stock-status stock-empty">Sin stock</span>
-                    {% elif producto.stock <= 5 %}
+                    {% elif producto.stock <= stock_minimo_alerta %}
                         <span class="stock-status stock-low">{{ producto.stock }}</span>
                     {% else %}
                         <span class="stock-status stock-ok">{{ producto.stock }}</span>
@@ -262,7 +262,7 @@
                             <section class="product-info">
                                 <span class="product-image-box">
                                     {% if producto.imagen %}
-                                        <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}">
+                                        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
                                     {% else %}
                                         <i class='bx bx-package'></i>
                                     {% endif %}
@@ -273,7 +273,7 @@
 
                                     {% if producto.stock <= 0 %}
                                         <small>Reponer de forma urgente</small>
-                                    {% elif producto.stock <= 5 %}
+                                    {% elif producto.stock <= stock_minimo_alerta %}
                                         <small>Stock bajo, revisar reposición</small>
                                     {% else %}
                                         <small>Stock disponible</small>
@@ -311,7 +311,7 @@
                                 <span class="stock-status stock-empty">
                                     Sin stock
                                 </span>
-                            {% elif producto.stock <= 5 %}
+                            {% elif producto.stock <= stock_minimo_alerta %}
                                 <span class="stock-status stock-low">
                                     {{ producto.stock }}
                                 </span>

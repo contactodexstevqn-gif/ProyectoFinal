@@ -1,7 +1,7 @@
 {% extends 'form_base.html' %}
 {% load static %}
 
-{% block titulo %}Agregar producto | Fucsia Boutique{% endblock %}
+{% block titulo %}Agregar producto | {{ configuracion_tienda.nombre_tienda|default:'Fucsia Boutique' }}{% endblock %}
 
 {% block estilos %}
 <link rel="stylesheet" href="{% static 'agregar_producto.css' %}">
@@ -21,7 +21,7 @@
     </a>
 </header>
 
-<form method="POST" class="product-form confirm-form" enctype="multipart/form-data"
+<form method="POST" enctype="multipart/form-data" class="product-form confirm-form"
       data-confirm-title="¿Registrar producto?"
       data-confirm-text="El producto se guardará en el catálogo."
       data-confirm-icon="question"
@@ -98,8 +98,8 @@
         {{ form.imagen.errors }}
 
         <section class="image-preview-box" id="imagePreviewBox">
-            <img id="imagePreview" src="" alt="Vista previa de la imagen">
-            <p id="imagePreviewText">Vista previa de la imagen</p>
+            <img id="imagePreview" src="" alt="Vista previa de la imagen seleccionada">
+            <p id="imagePreviewText">Vista previa de la imagen seleccionada</p>
         </section>
     </section>
 

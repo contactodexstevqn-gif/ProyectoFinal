@@ -9,6 +9,7 @@ from django.shortcuts import redirect, render
 
 from productos.models import Producto
 from ventas.models import Venta
+from configuracion.models import ConfiguracionTienda
 from .permissions import es_administrador, rol_usuario
 
 
@@ -40,10 +41,12 @@ def login_view(request):
 
 @login_required(login_url='login')
 def dashboard(request):
-    query = request.GET.get('q', '')
+    query = request.GET.get('q', '').strip()
     es_admin = es_administrador(request.user)
+    configuracion = ConfiguracionTienda.obtener()
+    stock_minimo = configuracion.stock_minimo_alerta
 
-    productos = Producto.objects.all()
+    productos = Producto.objects.select_related('categoria').all()
 
     if query:
         productos = productos.filter(
@@ -58,21 +61,20 @@ def dashboard(request):
     ).distinct().order_by('-total_vendidos', 'nombre')[:3]
 
     total_productos = Producto.objects.count()
-    stock_bajo = Producto.objects.filter(stock__lte=5).count()
+    stock_bajo = Producto.objects.filter(stock__gte=1, stock__lte=stock_minimo).count()
 
     if es_admin:
-        ventas_base = Venta.objects.all()
+        ventas_base = Venta.objects.select_related('producto', 'vendedor')
         total_clientes = User.objects.count()
     else:
-        ventas_base = Venta.objects.filter(vendedor=request.user)
+        ventas_base = Venta.objects.select_related('producto', 'vendedor').filter(
+            vendedor=request.user
+        )
         total_clientes = None
 
     total_ventas = ventas_base.aggregate(total=Sum('total'))['total'] or 0
 
-    ventas_recientes = ventas_base.select_related(
-        'producto',
-        'vendedor'
-    ).order_by('-id')[:5]
+    ventas_recientes = ventas_base.order_by('-fecha')[:5]
 
     return render(request, 'dashboard.html', {
         'query': query,
@@ -80,6 +82,7 @@ def dashboard(request):
         'ventas_recientes': ventas_recientes,
         'total_productos': total_productos,
         'stock_bajo': stock_bajo,
+        'stock_minimo_alerta': stock_minimo,
         'total_ventas': total_ventas,
         'total_clientes': total_clientes,
         'es_admin': es_admin,
@@ -104,4 +107,6 @@ def usuarios(request):
         'total_usuarios': total_usuarios,
         'usuarios_activos': usuarios_activos,
         'usuarios_inactivos': usuarios_inactivos,
+        'es_admin': es_administrador(request.user),
+        'rol_usuario': rol_usuario(request.user),
     })

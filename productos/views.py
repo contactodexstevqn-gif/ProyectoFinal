@@ -3,13 +3,19 @@ import json
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
+from django.db.models.deletion import ProtectedError
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from backend.permissions import admin_required
+from configuracion.models import ConfiguracionTienda
 from .forms import CategoriaForm, ProductoEditForm, ProductoForm
-from .models import Categoria, Producto, MovimientoInventario
+from .models import Categoria, MovimientoInventario, Producto
+
+
+def obtener_stock_minimo():
+    return ConfiguracionTienda.obtener().stock_minimo_alerta
 
 
 @login_required(login_url='login')
@@ -18,6 +24,7 @@ def listar_productos(request):
     query = request.GET.get('q', '')
     categoria_id = request.GET.get('categoria', '')
     stock = request.GET.get('stock', '')
+    stock_minimo = obtener_stock_minimo()
 
     productos = Producto.objects.select_related('categoria').all().order_by('nombre')
     categorias = Categoria.objects.all().order_by('nombre')
@@ -33,12 +40,12 @@ def listar_productos(request):
         productos = productos.filter(categoria_id=categoria_id)
 
     if stock == 'bajo':
-        productos = productos.filter(stock__gte=1, stock__lte=5)
+        productos = productos.filter(stock__gte=1, stock__lte=stock_minimo)
     elif stock == 'sin_stock':
         productos = productos.filter(stock=0)
 
     total_productos = Producto.objects.count()
-    stock_bajo = Producto.objects.filter(stock__gte=1, stock__lte=5).count()
+    stock_bajo = Producto.objects.filter(stock__gte=1, stock__lte=stock_minimo).count()
     sin_stock = Producto.objects.filter(stock=0).count()
 
     return render(request, 'productos.html', {
@@ -50,6 +57,7 @@ def listar_productos(request):
         'total_productos': total_productos,
         'stock_bajo': stock_bajo,
         'sin_stock': sin_stock,
+        'stock_minimo_alerta': stock_minimo,
     })
 
 
@@ -63,8 +71,8 @@ def agregar_producto(request):
             producto = form.save()
             messages.success(request, f'Producto "{producto.nombre}" agregado correctamente.')
             return redirect('productos')
-        else:
-            messages.error(request, 'No se pudo agregar el producto. Revisa los datos ingresados.')
+
+        messages.error(request, 'No se pudo agregar el producto. Revisa los datos ingresados.')
     else:
         form = ProductoForm()
 
@@ -83,10 +91,10 @@ def agregar_categoria(request):
 
         if form.is_valid():
             categoria = form.save()
-            messages.success(request, f'Categoría "{categoria.nombre}" agregada correctamente.')
+            messages.success(request, f'Categoria "{categoria.nombre}" agregada correctamente.')
             return redirect('agregar_categoria')
-        else:
-            messages.error(request, 'No se pudo agregar la categoría. Revisa los datos ingresados.')
+
+        messages.error(request, 'No se pudo agregar la categoria. Revisa los datos ingresados.')
     else:
         form = CategoriaForm()
 
@@ -105,7 +113,7 @@ def crear_categoria(request):
     except json.JSONDecodeError:
         return JsonResponse({
             'success': False,
-            'error': 'Solicitud inválida.'
+            'error': 'Solicitud invalida.'
         }, status=400)
 
     nombre = data.get('nombre', '').strip()
@@ -138,8 +146,8 @@ def editar_producto(request, producto_id):
             producto = form.save()
             messages.success(request, f'Producto "{producto.nombre}" actualizado correctamente.')
             return redirect('productos')
-        else:
-            messages.error(request, 'No se pudo actualizar el producto. Revisa los datos ingresados.')
+
+        messages.error(request, 'No se pudo actualizar el producto. Revisa los datos ingresados.')
     else:
         form = ProductoEditForm(instance=producto)
 
@@ -167,7 +175,7 @@ def actualizar_stock(request, producto_id):
         try:
             cantidad = int(cantidad)
         except ValueError:
-            messages.error(request, 'La cantidad debe ser un número válido.')
+            messages.error(request, 'La cantidad debe ser un numero valido.')
             return redirect('actualizar_stock', producto_id=producto.id)
 
         if cantidad < 0:
@@ -178,23 +186,20 @@ def actualizar_stock(request, producto_id):
 
         if tipo == 'entrada':
             stock_nuevo = stock_anterior + cantidad
-
         elif tipo == 'salida':
             stock_nuevo = stock_anterior - cantidad
 
             if stock_nuevo < 0:
-                messages.error(request, 'No puedes retirar más productos de los que hay actualmente.')
+                messages.error(request, 'No puedes retirar mas productos de los que hay actualmente.')
                 return redirect('actualizar_stock', producto_id=producto.id)
-
         elif tipo == 'correccion':
             stock_nuevo = cantidad
-
         else:
-            messages.error(request, 'El tipo de movimiento no es válido.')
+            messages.error(request, 'El tipo de movimiento no es valido.')
             return redirect('actualizar_stock', producto_id=producto.id)
 
         producto.stock = stock_nuevo
-        producto.save()
+        producto.save(update_fields=['stock'])
 
         MovimientoInventario.objects.create(
             producto=producto,
@@ -229,14 +234,23 @@ def eliminar_producto(request, producto_id):
 
         if confirmar == 'si':
             nombre_producto = producto.nombre
-            producto.delete()
+
+            try:
+                producto.delete()
+            except ProtectedError:
+                messages.error(
+                    request,
+                    f'No se puede eliminar "{nombre_producto}" porque tiene ventas registradas.'
+                )
+                return redirect('productos')
+
             messages.success(request, f'Producto "{nombre_producto}" eliminado correctamente.')
             return redirect('productos')
 
-        messages.error(request, 'Debes confirmar la eliminación para continuar.')
+        messages.error(request, 'Debes confirmar la eliminacion para continuar.')
         return render(request, 'eliminar_producto.html', {
             'producto': producto,
-            'error': 'Debes confirmar la eliminación para continuar.'
+            'error': 'Debes confirmar la eliminacion para continuar.'
         })
 
     return render(request, 'eliminar_producto.html', {
@@ -250,6 +264,7 @@ def inventario(request):
     query = request.GET.get('q', '')
     categoria_id = request.GET.get('categoria', '')
     stock = request.GET.get('stock', '')
+    stock_minimo = obtener_stock_minimo()
 
     productos = Producto.objects.select_related('categoria').all().order_by('stock', 'nombre')
     categorias = Categoria.objects.all().order_by('nombre')
@@ -265,11 +280,11 @@ def inventario(request):
         productos = productos.filter(categoria_id=categoria_id)
 
     if stock == 'bajo':
-        productos = productos.filter(stock__gte=1, stock__lte=5)
+        productos = productos.filter(stock__gte=1, stock__lte=stock_minimo)
     elif stock == 'sin_stock':
         productos = productos.filter(stock=0)
     elif stock == 'disponible':
-        productos = productos.filter(stock__gt=5)
+        productos = productos.filter(stock__gt=stock_minimo)
 
     productos_lista = list(productos)
 
@@ -279,13 +294,14 @@ def inventario(request):
     todos_productos = Producto.objects.all()
 
     total_productos = Producto.objects.count()
-    stock_bajo = Producto.objects.filter(stock__gte=1, stock__lte=5).count()
+    stock_bajo = Producto.objects.filter(stock__gte=1, stock__lte=stock_minimo).count()
     sin_stock = Producto.objects.filter(stock=0).count()
-    disponibles = Producto.objects.filter(stock__gt=5).count()
+    disponibles = Producto.objects.filter(stock__gt=stock_minimo).count()
     valor_total = sum(producto.precio * producto.stock for producto in todos_productos)
 
     productos_criticos = Producto.objects.select_related('categoria').filter(
-        stock__lte=5
+        stock__gte=1,
+        stock__lte=stock_minimo
     ).order_by('stock', 'nombre')[:5]
 
     return render(request, 'inventario.html', {
@@ -300,12 +316,22 @@ def inventario(request):
         'disponibles': disponibles,
         'valor_total': valor_total,
         'productos_criticos': productos_criticos,
+        'stock_minimo_alerta': stock_minimo,
     })
 
 
 def catalogo_publico(request):
+    configuracion = ConfiguracionTienda.obtener()
+    stock_minimo = configuracion.stock_minimo_alerta
     productos = Producto.objects.select_related('categoria').all().order_by('nombre')
+    telefono_whatsapp = ''.join(caracter for caracter in configuracion.telefono if caracter.isdigit()) or '573001234567'
+
+    if not configuracion.mostrar_agotados_catalogo:
+        productos = productos.filter(stock__gt=0)
 
     return render(request, 'catalogo.html', {
-        'productos': productos
+        'productos': productos,
+        'stock_minimo_alerta': stock_minimo,
+        'configuracion': configuracion,
+        'telefono_whatsapp': telefono_whatsapp,
     })

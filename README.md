@@ -223,6 +223,7 @@ Ejemplo:
     mysqlclient
     pandas
     openpyxl
+    Pillow
     python-dotenv
 
 También se puede generar automáticamente con:
@@ -299,3 +300,40 @@ Proyecto académico desarrollado para el curso Herramientas Computacionales.
 - Stiven Mendoza
 - Santiago Vasquez
 - Keiner Perez
+
+
+## Imágenes de productos
+
+Las imágenes de los productos se suben desde el formulario de agregar/editar producto.
+Django las guarda en la carpeta `media/productos/` durante el desarrollo.
+
+La configuración está en `backend/settings.py`:
+
+```python
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+```
+
+En modo desarrollo, `backend/urls.py` sirve estos archivos cuando `DEBUG = True`.
+
+## Configuración del sistema
+
+El sistema incluye una sección de **Configuración** disponible para administradores desde el menú lateral.
+
+Desde allí se puede cambiar:
+
+- Nombre de la tienda.
+- Teléfono / WhatsApp de contacto.
+- Dirección.
+- Correo de contacto.
+- Stock mínimo para alertas.
+- Tema por defecto: oscuro o claro.
+- Si el catálogo público muestra productos agotados.
+
+Después de descargar esta versión, ejecuta:
+
+```bash
+python manage.py migrate
+```
+
+Esto crea la tabla de configuración sin borrar los usuarios, productos, ventas ni inventario que ya tengas en MySQL.
