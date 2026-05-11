@@ -258,3 +258,22 @@ body.dark-mode .inventory-health-list article {
         padding: 18px 22px;
     }
 }
+
+.inventory-overview-grid {
+    align-items: start;
+}
+
+.inventory-value-card,
+.inventory-health-card {
+    align-self: start;
+    min-height: auto;
+}
+
+.inventory-priority-list {
+    max-height: 360px;
+    overflow-y: auto;
+}
+
+.inventory-priority-panel {
+    align-self: start;
+}

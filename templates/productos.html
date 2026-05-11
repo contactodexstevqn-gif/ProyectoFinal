@@ -160,8 +160,13 @@
                         <td>
                             <section class="product-info">
                                 <span class="product-image-box">
-                                    {% if producto.imagen %}
-                                        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+                                    {% if producto.imagen_final_url %}
+                                        <img 
+                                            src="{{ producto.imagen_final_url }}" 
+                                            alt="{{ producto.nombre }}"
+                                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                        >
+                                        <i class='bx bx-package product-fallback-icon' style="display: none;"></i>
                                     {% else %}
                                         <i class='bx bx-package'></i>
                                     {% endif %}
@@ -170,7 +175,7 @@
                                 <section class="product-text">
                                     <strong>{{ producto.nombre }}</strong>
 
-                                    {% if producto.imagen %}
+                                    {% if producto.tiene_imagen %}
                                         <small>Imagen registrada</small>
                                     {% else %}
                                         <small>Sin imagen</small>

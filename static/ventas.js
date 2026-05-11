@@ -9,14 +9,19 @@
     }
 
     const moneyFormatter = new Intl.NumberFormat('es-CO', {
-        style: 'currency',
-        currency: 'COP',
+        minimumFractionDigits: 0,
         maximumFractionDigits: 0
     });
 
     const numberFormatter = new Intl.NumberFormat('es-CO', {
+        minimumFractionDigits: 0,
         maximumFractionDigits: 0
     });
+
+    function formatoPesos(valor) {
+        const numero = Number(valor || 0);
+        return `$${moneyFormatter.format(Math.round(numero))}`;
+    }
 
     function limpiarPrecio(valor) {
         if (!valor) {
@@ -97,7 +102,7 @@
             }
         }
 
-        totalPreview.textContent = moneyFormatter.format(total);
+        totalPreview.textContent = formatoPesos(total);
         stockPreview.textContent = stockMessage;
     }
 

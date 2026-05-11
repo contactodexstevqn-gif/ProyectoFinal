@@ -82,13 +82,21 @@
         {% for producto in productos %}
         <article class="product-card">
             <section class="product-image">
-                {% if producto.imagen %}
-                    <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
-                {% else %}
-                    <section class="empty-image">
-                        <i class='bx bx-package'></i>
-                    </section>
-                {% endif %}
+                {% if producto.imagen_final_url %}
+                    <img 
+                        src="{{ producto.imagen_final_url }}" 
+                        alt="{{ producto.nombre }}"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+              >
+
+        <section class="empty-image image-fallback" style="display: none;">
+            <i class='bx bx-package'></i>
+        </section>
+    {% else %}
+        <section class="empty-image">
+            <i class='bx bx-package'></i>
+        </section>
+    {% endif %}
 
                 {% if producto.stock > stock_minimo_alerta %}
                     <span class="availability available">Disponible</span>

@@ -121,3 +121,186 @@ body.dark-mode .products-panel-full {
         display: none !important;
     }
 }
+
+.table-responsive,
+.products-table-wrapper,
+.sales-list,
+.recent-sales-list,
+.vp-products-list,
+.inventory-priority-list {
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) transparent;
+}
+
+.table-responsive::-webkit-scrollbar,
+.products-table-wrapper::-webkit-scrollbar,
+.sales-list::-webkit-scrollbar,
+.recent-sales-list::-webkit-scrollbar,
+.vp-products-list::-webkit-scrollbar,
+.inventory-priority-list::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb,
+.products-table-wrapper::-webkit-scrollbar-thumb,
+.sales-list::-webkit-scrollbar-thumb,
+.recent-sales-list::-webkit-scrollbar-thumb,
+.vp-products-list::-webkit-scrollbar-thumb,
+.inventory-priority-list::-webkit-scrollbar-thumb {
+    background: var(--soft-accent);
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background-clip: content-box;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover,
+.products-table-wrapper::-webkit-scrollbar-thumb:hover,
+.sales-list::-webkit-scrollbar-thumb:hover,
+.recent-sales-list::-webkit-scrollbar-thumb:hover,
+.vp-products-list::-webkit-scrollbar-thumb:hover,
+.inventory-priority-list::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+    background-clip: content-box;
+}
+
+.filter-group,
+.vp-control,
+.stock-form-group {
+    position: relative;
+}
+
+.filter-group select,
+.vp-control select,
+.stock-form-group select,
+.form-select {
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: none !important;
+    padding-right: 44px !important;
+}
+
+.filter-group:has(select)::after,
+.vp-control:has(select)::after,
+.stock-form-group:has(select)::after {
+    content: '\ea4a';
+    font-family: 'boxicons';
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 22px;
+    pointer-events: none;
+}
+
+select option {
+    background: #ffffff;
+    color: #111827;
+    font-size: 15px;
+    font-weight: 800;
+    padding: 12px 14px;
+}
+
+select option:checked {
+    background: var(--soft-accent);
+    color: var(--accent);
+}
+
+select option:disabled {
+    color: #9ca3af;
+}
+
+body.dark-mode select option {
+    background: #1f2937;
+    color: #f9fafb;
+}
+
+body.dark-mode select option:checked {
+    background: rgba(212, 20, 115, 0.24);
+    color: #ffffff;
+}
+
+.filter-group,
+.vp-control,
+.stock-form-group,
+.form-field,
+.config-form .form-group,
+.filters {
+    position: relative;
+}
+
+.filter-group select,
+.vp-control select,
+.stock-form-group select,
+.form-select,
+.config-form .form-select,
+.filters .form-select {
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 46px !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.filter-group:has(select)::after,
+.vp-control:has(select)::after,
+.stock-form-group:has(select)::after,
+.form-field:has(select)::after,
+.config-form .form-group:has(select)::after,
+.filters:has(select)::after {
+    content: '\ea4a';
+    font-family: 'boxicons';
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 22px;
+    pointer-events: none;
+    z-index: 3;
+}
+
+select option {
+    background: #ffffff;
+    color: #111827;
+    font-size: 16px;
+    font-weight: 800;
+    min-height: 44px;
+    line-height: 44px;
+    padding: 14px 18px;
+}
+
+select option:checked {
+    background: var(--accent) !important;
+    color: #ffffff !important;
+}
+
+select option:hover {
+    background: var(--soft-accent);
+    color: var(--accent);
+}
+
+select option:disabled {
+    color: #9ca3af;
+    font-weight: 700;
+}
+
+/* Modo oscuro */
+body.dark-mode select option {
+    background: #1f2937;
+    color: #f9fafb;
+}
+
+body.dark-mode select option:checked {
+    background: var(--accent) !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode select option:disabled {
+    background: #111827;
+    color: #9ca3af;
+}

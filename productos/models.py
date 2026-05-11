@@ -16,6 +16,24 @@ class Producto(models.Model):
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.PositiveIntegerField()
     imagen = models.ImageField(upload_to='productos/', max_length=255, blank=True, null=True)
+    imagen_url = models.URLField(max_length=500, blank=True, null=True)
+
+    @property
+    def imagen_final_url(self):
+        if self.imagen_url:
+            return self.imagen_url
+
+        if self.imagen:
+            try:
+                return self.imagen.url
+            except ValueError:
+                return ''
+
+        return ''
+
+    @property
+    def tiene_imagen(self):
+        return bool(self.imagen_final_url)
 
     def __str__(self):
         return self.nombre

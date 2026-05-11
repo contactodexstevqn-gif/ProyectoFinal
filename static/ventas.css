@@ -580,3 +580,107 @@ body.dark-mode .vp-add-btn {
         font-size: 21px;
     }
 }
+
+.sales-layout-grid {
+    align-items: start;
+}
+
+.sale-form-panel,
+.recent-sales-panel,
+.sales-table-panel {
+    align-self: start;
+}
+
+.vp-products-list {
+    max-height: 430px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.recent-sales-list {
+    max-height: 540px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.sales-table-panel .products-table-wrapper {
+    max-height: 560px;
+    overflow: auto;
+}
+
+.sales-table .product-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+}
+
+.sales-table .product-image-box {
+    width: 72px;
+    height: 72px;
+    min-width: 72px;
+    max-width: 72px;
+    border-radius: 18px;
+    background: var(--soft-accent);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sales-table .product-image-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.sales-table .product-image-box i {
+    color: var(--accent);
+    font-size: 34px;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sales-table .product-text {
+    min-width: 0;
+}
+
+.sales-table .product-text strong {
+    display: block;
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 900;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sales-table .product-text small {
+    display: block;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 800;
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sales-table td {
+    vertical-align: middle;
+}
+
+.sales-table td:last-child {
+    white-space: nowrap;
+}
+
+.product-fallback-icon {
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+}

@@ -45,7 +45,7 @@
         </section>
         <section>
             <span>Total ventas</span>
-            <h3>${{ total_ventas|formato_pesos }}</h3>
+            <h3>{{ total_ventas|formato_pesos }}</h3>
             <p>Acumulado</p>
         </section>
     </article>
@@ -56,7 +56,7 @@
         </section>
         <section>
             <span>Ventas de hoy</span>
-            <h3>${{ total_hoy|formato_pesos }}</h3>
+            <h3>{{ total_hoy|formato_pesos }}</h3>
             <p>Registrado hoy</p>
         </section>
     </article>
@@ -67,7 +67,7 @@
         </section>
         <section>
             <span>Este mes</span>
-            <h3>${{ total_mes|formato_pesos }}</h3>
+            <h3>{{ total_mes|formato_pesos }}</h3>
             <p>Ventas mensuales</p>
         </section>
     </article>
@@ -230,7 +230,7 @@
                     {% endif %}
                 </section>
 
-                <p>${{ venta.total|formato_pesos }}</p>
+                <p>{{ venta.total|formato_pesos }}</p>
             </article>
             {% empty %}
             <article class="sales-empty-state compact">

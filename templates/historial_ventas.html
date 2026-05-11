@@ -62,7 +62,7 @@
 
         <section>
             <span>Total filtrado</span>
-            <h3>${{ total_filtrado|formato_pesos }}</h3>
+            <h3>{{ total_filtrado|formato_pesos }}</h3>
             <p>Valor vendido</p>
         </section>
     </article>
@@ -151,7 +151,9 @@
                         <th>Categoría</th>
                         <th>Cantidad</th>
                         <th>Total</th>
-                        {% if es_admin %}<th>Vendedor</th>{% endif %}
+                        {% if es_admin %}
+                        <th>Vendedor</th>
+                        {% endif %}
                         <th>Fecha</th>
                     </tr>
                 </thead>
@@ -162,10 +164,15 @@
                         <td>
                             <section class="product-info">
                                 <span class="product-image-box">
-                                    {% if venta.producto.imagen %}
-                                        <img src="{{ venta.producto.imagen.url }}" alt="{{ venta.producto.nombre }}">
+                                    {% if venta.producto.imagen_final_url %}
+                                    <img
+                                        src="{{ venta.producto.imagen_final_url }}"
+                                        alt="{{ venta.producto.nombre }}"
+                                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                    >
+                                    <i class='bx bx-package product-fallback-icon' style="display: none;"></i>
                                     {% else %}
-                                        <i class='bx bx-package'></i>
+                                    <i class='bx bx-package'></i>
                                     {% endif %}
                                 </span>
 
@@ -188,7 +195,7 @@
                             <span class="sold-badge">{{ venta.cantidad|formato_numero }}</span>
                         </td>
 
-                        <td class="price-cell">${{ venta.total|formato_pesos }}</td>
+                        <td class="price-cell">{{ venta.total|formato_pesos }}</td>
 
                         {% if es_admin %}
                         <td>{{ venta.vendedor.username }}</td>
