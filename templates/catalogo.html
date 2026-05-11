@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catálogo | Fucsia Boutique</title>
+    <title>Catalogo | {{ configuracion.nombre_tienda|default:'Fucsia Boutique' }}</title>
 
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'catalogo.css' %}">
@@ -17,11 +17,11 @@
 <header class="catalog-header">
     <nav class="catalog-nav">
         <section class="brand-box">
-            <img src="{% static 'img/logo.png' %}" alt="Logo Fucsia Boutique">
+            <img src="{% static 'img/logo.png' %}" alt="Logo {{ configuracion.nombre_tienda|default:'Fucsia Boutique' }}">
 
             <section>
-                <h1>Fucsia Boutique</h1>
-                <p>Catálogo comercial</p>
+                <h1>{{ configuracion.nombre_tienda|default:'Fucsia Boutique' }}</h1>
+                <p>Catalogo comercial</p>
             </section>
         </section>
 
@@ -34,24 +34,24 @@
     <section class="hero-content">
         <span class="hero-badge">
             <i class='bx bx-store'></i>
-            Catálogo disponible
+            Catalogo disponible
         </span>
 
         <h2>Productos seleccionados para ti</h2>
 
         <p>
-            Explora nuestro catálogo, revisa colores, tallas y disponibilidad.
-            Para realizar un pedido o consultar detalles, comunícate con nosotros por WhatsApp.
+            Explora nuestro catalogo, revisa colores, tallas y disponibilidad.
+            Para realizar un pedido o consultar detalles, comunicate con nosotros por WhatsApp.
         </p>
 
         <section class="hero-actions">
             <a href="#productos" class="hero-primary-btn">
                 <i class='bx bx-search-alt'></i>
-                Explorar catálogo
+                Explorar catalogo
             </a>
 
-            <a 
-                href="https://wa.me/573001234567?text=Hola,%20quiero%20consultar%20el%20catálogo%20de%20Fucsia%20Boutique"
+            <a
+                href="https://wa.me/{{ telefono_whatsapp }}?text=Hola,%20quiero%20consultar%20el%20catalogo%20de%20{{ configuracion.nombre_tienda|urlencode }}"
                 target="_blank"
                 class="hero-whatsapp-btn"
             >
@@ -63,11 +63,10 @@
 </header>
 
 <main class="catalog-main" id="productos">
-
     <section class="catalog-title">
         <section>
             <p>Productos</p>
-            <h2>Catálogo Fucsia Boutique</h2>
+            <h2>Catalogo {{ configuracion.nombre_tienda|default:'Fucsia Boutique' }}</h2>
         </section>
 
         <span class="product-count">
@@ -82,17 +81,16 @@
     <section class="products-grid">
         {% for producto in productos %}
         <article class="product-card">
-
             <section class="product-image">
                 {% if producto.imagen %}
-                    <img src="{{ producto.imagen }}" alt="{{ producto.nombre }}">
+                    <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
                 {% else %}
                     <section class="empty-image">
                         <i class='bx bx-package'></i>
                     </section>
                 {% endif %}
 
-                {% if producto.stock > 5 %}
+                {% if producto.stock > stock_minimo_alerta %}
                     <span class="availability available">Disponible</span>
                 {% elif producto.stock > 0 %}
                     <span class="availability low">Pocas unidades</span>
@@ -126,18 +124,18 @@
                     <strong>{{ producto.precio|formato_pesos }}</strong>
 
                     {% if producto.stock > 0 %}
-                        <a 
-                            href="https://wa.me/573001234567?text=Hola,%20quiero%20consultar%20por%20el%20producto%20{{ producto.nombre|urlencode }}"
-                            target="_blank"
-                            class="whatsapp-btn"
-                        >
-                            <i class='bx bxl-whatsapp'></i>
-                            Consultar
-                        </a>
+                    <a
+                        href="https://wa.me/{{ telefono_whatsapp }}?text=Hola,%20quiero%20consultar%20por%20el%20producto%20{{ producto.nombre|urlencode }}"
+                        target="_blank"
+                        class="whatsapp-btn"
+                    >
+                        <i class='bx bxl-whatsapp'></i>
+                        Consultar
+                    </a>
                     {% else %}
-                        <button class="disabled-btn" disabled>
-                            Agotado
-                        </button>
+                    <button class="disabled-btn" disabled>
+                        Agotado
+                    </button>
                     {% endif %}
                 </section>
             </section>
@@ -146,15 +144,14 @@
         <section class="empty-catalog">
             <i class='bx bx-package'></i>
             <h3>No hay productos disponibles</h3>
-            <p>Pronto agregaremos nuevos productos al catálogo.</p>
+            <p>Pronto agregaremos nuevos productos al catalogo.</p>
         </section>
         {% endfor %}
     </section>
-
 </main>
 
 <footer class="catalog-footer">
-    <p>© Fucsia Boutique · Catálogo comercial</p>
+    <p>{{ configuracion.nombre_tienda|default:'Fucsia Boutique' }} - Catalogo comercial</p>
 </footer>
 
 </body>

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block titulo %}Usuarios | Fucsia Boutique{% endblock %}
+{% block titulo %}Usuarios | {{ configuracion_tienda.nombre_tienda|default:'Fucsia Boutique' }}{% endblock %}
 
 {% block estilos %}
 <link rel="stylesheet" href="{% static 'usuarios.css' %}">

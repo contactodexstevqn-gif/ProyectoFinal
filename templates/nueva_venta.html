@@ -3,7 +3,7 @@
 {% load l10n %}
 {% load formatos %}
 
-{% block titulo %}Ventas | Fucsia Boutique{% endblock %}
+{% block titulo %}Ventas | {{ configuracion_tienda.nombre_tienda|default:'Fucsia Boutique' }}{% endblock %}
 
 {% block estilos %}
 <link rel="stylesheet" href="{% static 'usuarios.css' %}">

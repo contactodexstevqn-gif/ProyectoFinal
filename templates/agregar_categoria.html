@@ -1,6 +1,6 @@
 {% extends 'form_base.html' %}
 
-{% block titulo %}Agregar categoría | Fucsia Boutique{% endblock %}
+{% block titulo %}Agregar categoría | {{ configuracion_tienda.nombre_tienda|default:'Fucsia Boutique' }}{% endblock %}
 
 {% block contenido %}
 

@@ -1,6 +1,6 @@
 {% extends 'form_base.html' %}
 
-{% block titulo %}Eliminar producto | Fucsia Boutique{% endblock %}
+{% block titulo %}Eliminar producto | {{ configuracion_tienda.nombre_tienda|default:'Fucsia Boutique' }}{% endblock %}
 
 {% block contenido %}
 

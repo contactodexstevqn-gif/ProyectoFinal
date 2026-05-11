@@ -2,7 +2,7 @@
 {% load static %}
 {% load formatos %}
 
-{% block titulo %}Historial de ventas | Fucsia Boutique{% endblock %}
+{% block titulo %}Historial de ventas | {{ configuracion_tienda.nombre_tienda|default:'Fucsia Boutique' }}{% endblock %}
 
 {% block estilos %}
 <link rel="stylesheet" href="{% static 'usuarios.css' %}">
@@ -159,7 +159,7 @@
                             <section class="product-info">
                                 <span class="product-image-box">
                                     {% if venta.producto.imagen %}
-                                        <img src="{{ venta.producto.imagen }}" alt="{{ venta.producto.nombre }}">
+                                        <img src="{{ venta.producto.imagen.url }}" alt="{{ venta.producto.nombre }}">
                                     {% else %}
                                         <i class='bx bx-package'></i>
                                     {% endif %}

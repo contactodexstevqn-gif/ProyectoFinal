@@ -1,7 +1,7 @@
 {% extends 'form_base.html' %}
 {% load static %}
 
-{% block titulo %}Editar producto | Fucsia Boutique{% endblock %}
+{% block titulo %}Editar producto | {{ configuracion_tienda.nombre_tienda|default:'Fucsia Boutique' }}{% endblock %}
 
 {% block estilos %}
 <link rel="stylesheet" href="{% static 'agregar_producto.css' %}">
@@ -21,7 +21,7 @@
     </a>
 </header>
 
-<form method="POST" class="product-form confirm-form" enctype="multipart/form-data"
+<form method="POST" enctype="multipart/form-data" class="product-form confirm-form"
       data-confirm-title="¿Guardar cambios?"
       data-confirm-text="Se actualizará la información del producto."
       data-confirm-icon="question"
@@ -91,11 +91,11 @@
 
         <section class="image-preview-box" id="imagePreviewBox">
             {% if producto.imagen %}
-                <img id="imagePreview" src="{{ producto.imagen }}" alt="Vista previa de {{ producto.nombre }}">
-                <p id="imagePreviewText" style="display: none;">Vista previa de la imagen</p>
+                <img id="imagePreview" src="{{ producto.imagen.url }}" alt="Vista previa de {{ producto.nombre }}">
+                <p id="imagePreviewText" style="display: none;">Vista previa de la imagen seleccionada</p>
             {% else %}
-                <img id="imagePreview" src="" alt="Vista previa de la imagen">
-                <p id="imagePreviewText">Vista previa de la imagen</p>
+                <img id="imagePreview" src="" alt="Vista previa de la imagen seleccionada">
+                <p id="imagePreviewText">Vista previa de la imagen seleccionada</p>
             {% endif %}
         </section>
     </section>

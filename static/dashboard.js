@@ -17,26 +17,28 @@ if (menuToggle && sidebar && overlay) {
 const themeToggle = document.getElementById('themeToggle');
 const themeIcon = themeToggle ? themeToggle.querySelector('i') : null;
 
-const savedTheme = localStorage.getItem('theme');
+function applyTheme(theme) {
+    const isDark = theme === 'dark';
 
-if (savedTheme === 'dark') {
-    document.body.classList.add('dark-mode');
+    document.documentElement.classList.toggle('dark-mode', isDark);
+    document.documentElement.dataset.theme = theme;
+    document.body.classList.toggle('dark-mode', isDark);
 
     if (themeIcon) {
-        themeIcon.classList.remove('bx-moon');
-        themeIcon.classList.add('bx-sun');
+        themeIcon.classList.toggle('bx-moon', !isDark);
+        themeIcon.classList.toggle('bx-sun', isDark);
     }
 }
 
+const savedTheme = localStorage.getItem('theme') || window.SYSTEM_DEFAULT_THEME || 'dark';
+applyTheme(savedTheme);
+
 if (themeToggle && themeIcon) {
     themeToggle.addEventListener('click', () => {
-        document.body.classList.toggle('dark-mode');
+        const currentTheme = document.body.classList.contains('dark-mode') ? 'dark' : 'light';
+        const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
 
-        const isDark = document.body.classList.contains('dark-mode');
-
-        themeIcon.classList.toggle('bx-moon', !isDark);
-        themeIcon.classList.toggle('bx-sun', isDark);
-
-        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        localStorage.setItem('theme', nextTheme);
+        applyTheme(nextTheme);
     });
 }

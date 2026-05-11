@@ -65,21 +65,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const imagePreview = document.getElementById('imagePreview');
     const imagePreviewBox = document.getElementById('imagePreviewBox');
     const imagePreviewText = document.getElementById('imagePreviewText');
+    let objectUrlActual = null;
+    const imagenInicial = imagePreview ? imagePreview.getAttribute('src') : '';
 
     function mostrarVistaPrevia() {
         if (!imagenInput || !imagePreview || !imagePreviewBox || !imagePreviewText) {
             return;
         }
 
-        const imageUrl = imagenInput.value.trim();
+        const archivo = imagenInput.files && imagenInput.files[0];
 
-        if (imageUrl) {
-            imagePreview.src = imageUrl;
+        if (objectUrlActual) {
+            URL.revokeObjectURL(objectUrlActual);
+            objectUrlActual = null;
+        }
+
+        if (archivo) {
+            objectUrlActual = URL.createObjectURL(archivo);
+            imagePreview.src = objectUrlActual;
+            imagePreview.style.display = 'block';
+            imagePreviewText.style.display = 'none';
+            imagePreviewBox.classList.add('has-image');
+        } else if (imagenInicial) {
+            imagePreview.src = imagenInicial;
             imagePreview.style.display = 'block';
             imagePreviewText.style.display = 'none';
             imagePreviewBox.classList.add('has-image');
         } else {
-            imagePreview.src = '';
+            imagePreview.removeAttribute('src');
             imagePreview.style.display = 'none';
             imagePreviewText.style.display = 'block';
             imagePreviewBox.classList.remove('has-image');
@@ -87,7 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (imagenInput) {
-        imagenInput.addEventListener('input', mostrarVistaPrevia);
         imagenInput.addEventListener('change', mostrarVistaPrevia);
         mostrarVistaPrevia();
     }
