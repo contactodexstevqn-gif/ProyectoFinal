@@ -7,10 +7,13 @@ from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q
 from django.db.models.deletion import ProtectedError
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.utils.dateparse import parse_date
 from django.views.decorators.http import require_POST
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Font, PatternFill
 
 from backend.permissions import admin_required
 from configuracion.models import ConfiguracionTienda
@@ -378,9 +381,7 @@ def inventario(request):
     })
 
 
-@login_required(login_url='login')
-@admin_required
-def historial_inventario(request):
+def filtrar_movimientos_inventario(request):
     query = request.GET.get('q', '').strip()
     tipo = request.GET.get('tipo', '').strip()
     motivo = request.GET.get('motivo', '').strip()
@@ -416,6 +417,20 @@ def historial_inventario(request):
     if fecha_fin_parseada:
         movimientos = movimientos.filter(fecha__date__lte=fecha_fin_parseada)
 
+    return movimientos, {
+        'query': query,
+        'tipo': tipo,
+        'motivo': motivo,
+        'fecha_inicio': fecha_inicio,
+        'fecha_fin': fecha_fin,
+    }
+
+
+@login_required(login_url='login')
+@admin_required
+def historial_inventario(request):
+    movimientos, filtros = filtrar_movimientos_inventario(request)
+
     total_filtrado = movimientos.count()
     entradas_filtradas = movimientos.filter(tipo='entrada').count()
     salidas_filtradas = movimientos.filter(tipo='salida').count()
@@ -427,11 +442,11 @@ def historial_inventario(request):
 
     return render(request, 'historial_inventario.html', {
         'movimientos': movimientos_pagina,
-        'query': query,
-        'tipo': tipo,
-        'motivo': motivo,
-        'fecha_inicio': fecha_inicio,
-        'fecha_fin': fecha_fin,
+        'query': filtros['query'],
+        'tipo': filtros['tipo'],
+        'motivo': filtros['motivo'],
+        'fecha_inicio': filtros['fecha_inicio'],
+        'fecha_fin': filtros['fecha_fin'],
         'tipoElecciones': MovimientoInventario.tipoElecciones,
         'motivoElecciones': MovimientoInventario.motivoElecciones,
         'total_filtrado': total_filtrado,
@@ -439,6 +454,101 @@ def historial_inventario(request):
         'salidas_filtradas': salidas_filtradas,
         'correcciones_filtradas': correcciones_filtradas,
     })
+
+
+@login_required(login_url='login')
+@admin_required
+def exportar_historial_inventario_excel(request):
+    movimientos, filtros = filtrar_movimientos_inventario(request)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Historial inventario'
+
+    encabezados = [
+        'Producto',
+        'Categoria',
+        'Tipo',
+        'Cantidad',
+        'Stock anterior',
+        'Stock nuevo',
+        'Motivo',
+        'Observacion',
+        'Fecha'
+    ]
+
+    ws.append(['Historial de movimientos de inventario'])
+    ws.append([
+        f"Busqueda: {filtros['query'] or 'Todos'}",
+        f"Tipo: {filtros['tipo'] or 'Todos'}",
+        f"Motivo: {filtros['motivo'] or 'Todos'}",
+        f"Desde: {filtros['fecha_inicio'] or 'Sin fecha'}",
+        f"Hasta: {filtros['fecha_fin'] or 'Sin fecha'}"
+    ])
+    ws.append([])
+    ws.append(encabezados)
+
+    for movimiento in movimientos:
+        ws.append([
+            movimiento.producto.nombre,
+            movimiento.producto.categoria.nombre if movimiento.producto.categoria else 'Sin categoria',
+            movimiento.get_tipo_display(),
+            movimiento.cantidad,
+            movimiento.stock_anterior,
+            movimiento.stock_nuevo,
+            movimiento.get_motivo_display() if movimiento.motivo else 'Sin motivo',
+            movimiento.observacion or '',
+            timezone.localtime(movimiento.fecha).strftime('%d/%m/%Y %I:%M %p')
+        ])
+
+    titulo_fill = PatternFill('solid', fgColor='D41473')
+    encabezado_fill = PatternFill('solid', fgColor='FCE7F3')
+    titulo_font = Font(color='FFFFFF', bold=True, size=14)
+    encabezado_font = Font(color='111827', bold=True)
+    center = Alignment(horizontal='center', vertical='center')
+    left = Alignment(horizontal='left', vertical='center')
+
+    ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=9)
+    ws['A1'].fill = titulo_fill
+    ws['A1'].font = titulo_font
+    ws['A1'].alignment = center
+    ws.row_dimensions[1].height = 28
+
+    for cell in ws[4]:
+        cell.fill = encabezado_fill
+        cell.font = encabezado_font
+        cell.alignment = center
+
+    for row in ws.iter_rows(min_row=5):
+        for cell in row:
+            cell.alignment = left
+
+    anchos = {
+        'A': 28,
+        'B': 22,
+        'C': 16,
+        'D': 12,
+        'E': 16,
+        'F': 16,
+        'G': 26,
+        'H': 38,
+        'I': 22,
+    }
+
+    for columna, ancho in anchos.items():
+        ws.column_dimensions[columna].width = ancho
+
+    ws.freeze_panes = 'A5'
+    ws.auto_filter.ref = f'A4:I{ws.max_row}'
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="historial_inventario.xlsx"'
+
+    wb.save(response)
+
+    return response
 
 
 def catalogo_publico(request):

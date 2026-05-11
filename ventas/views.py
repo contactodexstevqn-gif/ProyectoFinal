@@ -11,7 +11,8 @@ from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.utils.dateparse import parse_date
-import pandas as pd
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 
 from backend.permissions import GRUPO_ADMINISTRADOR, es_administrador, rol_usuario
 from productos.models import Producto
@@ -282,21 +283,11 @@ def exportar_ventas(request):
 
     nombre_archivo = 'historial_ventas.xlsx' if es_admin else 'mis_ventas.xlsx'
 
-    data = []
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Historial ventas'
 
-    for venta in ventas:
-        data.append({
-            'Fecha': timezone.localtime(venta.fecha).strftime('%d/%m/%Y %I:%M %p'),
-            'Producto': venta.producto.nombre,
-            'Categoria': venta.producto.categoria.nombre if venta.producto.categoria else 'Sin categoria',
-            'Color': venta.producto.color,
-            'Talla': venta.producto.talla,
-            'Cantidad': venta.cantidad,
-            'Total': venta.total,
-            'Vendedor': venta.vendedor.username if venta.vendedor else '',
-        })
-
-    df = pd.DataFrame(data, columns=[
+    encabezados = [
         'Fecha',
         'Producto',
         'Categoria',
@@ -304,15 +295,130 @@ def exportar_ventas(request):
         'Talla',
         'Cantidad',
         'Total',
-        'Vendedor',
+        'Vendedor'
+    ]
+
+    total_filtrado = ventas.aggregate(total=Sum('total'))['total'] or 0
+    unidades_filtradas = ventas.aggregate(total=Sum('cantidad'))['total'] or 0
+    cantidad_ventas = ventas.count()
+
+    nombre_vendedor = 'Todos'
+
+    if es_admin and vendedor_id:
+        vendedor = User.objects.filter(id=vendedor_id).first()
+
+        if vendedor:
+            nombre_vendedor = vendedor.get_full_name() or vendedor.username
+
+    if not es_admin:
+        nombre_vendedor = request.user.get_full_name() or request.user.username
+
+    ws.append(['Historial de ventas'])
+    ws.append([
+        f"Busqueda: {query or 'Todos'}",
+        f"Fecha: {fecha or 'Todas'}",
+        f"Vendedor: {nombre_vendedor}",
+        f"Ventas: {cantidad_ventas}",
+        f"Unidades: {unidades_filtradas}",
+        f"Total: ${int(total_filtrado):,}".replace(',', '.')
     ])
+    ws.append([])
+    ws.append(encabezados)
+
+    for venta in ventas:
+        ws.append([
+            timezone.localtime(venta.fecha).strftime('%d/%m/%Y %I:%M %p'),
+            venta.producto.nombre,
+            venta.producto.categoria.nombre if venta.producto.categoria else 'Sin categoria',
+            venta.producto.color,
+            venta.producto.talla,
+            venta.cantidad,
+            float(venta.total or 0),
+            venta.vendedor.username if venta.vendedor else '',
+        ])
+
+    titulo_fill = PatternFill('solid', fgColor='D41473')
+    encabezado_fill = PatternFill('solid', fgColor='FCE7F3')
+    resumen_fill = PatternFill('solid', fgColor='FFF1F8')
+    borde_color = Side(style='thin', color='E5E7EB')
+
+    titulo_font = Font(color='FFFFFF', bold=True, size=15)
+    encabezado_font = Font(color='111827', bold=True)
+    resumen_font = Font(color='4B5563', bold=True)
+    texto_font = Font(color='111827')
+
+    center = Alignment(horizontal='center', vertical='center')
+    left = Alignment(horizontal='left', vertical='center')
+
+    ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=8)
+    ws['A1'].fill = titulo_fill
+    ws['A1'].font = titulo_font
+    ws['A1'].alignment = center
+    ws.row_dimensions[1].height = 28
+
+    for cell in ws[2]:
+        cell.fill = resumen_fill
+        cell.font = resumen_font
+        cell.alignment = left
+        cell.border = Border(
+            left=borde_color,
+            right=borde_color,
+            top=borde_color,
+            bottom=borde_color
+        )
+
+    for cell in ws[4]:
+        cell.fill = encabezado_fill
+        cell.font = encabezado_font
+        cell.alignment = center
+        cell.border = Border(
+            left=borde_color,
+            right=borde_color,
+            top=borde_color,
+            bottom=borde_color
+        )
+
+    for row in ws.iter_rows(min_row=5):
+        for cell in row:
+            cell.font = texto_font
+            cell.alignment = left
+            cell.border = Border(
+                left=borde_color,
+                right=borde_color,
+                top=borde_color,
+                bottom=borde_color
+            )
+
+    for row in ws.iter_rows(min_row=5, min_col=6, max_col=7):
+        for cell in row:
+            cell.alignment = center
+
+    for cell in ws['G'][4:]:
+        cell.number_format = '"$"#,##0'
+
+    anchos = {
+        'A': 23,
+        'B': 28,
+        'C': 22,
+        'D': 16,
+        'E': 12,
+        'F': 12,
+        'G': 16,
+        'H': 22,
+    }
+
+    for columna, ancho in anchos.items():
+        ws.column_dimensions[columna].width = ancho
+
+    ws.freeze_panes = 'A5'
+    ws.auto_filter.ref = f'A4:H{ws.max_row}'
 
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
 
-    response['Content-Disposition'] = f'attachment; filename={nombre_archivo}'
+    response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
 
-    df.to_excel(response, index=False)
+    wb.save(response)
 
     return response
