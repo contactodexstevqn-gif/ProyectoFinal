@@ -121,12 +121,12 @@
                     <span>Historial</span>
                 </a>
 
-                <a href="{% url 'exportar_ventas' %}" class="menu-link">
+                {% if es_admin or request.user.is_superuser %}
+                <a href="{% url 'reportes' %}" class="menu-link {% if request.resolver_match.url_name == 'reportes' %}active{% endif %}">
                     <i class='bx bx-line-chart'></i>
-                    <span>{% if es_admin or request.user.is_superuser %}Reportes{% else %}Mi reporte{% endif %}</span>
+                    <span>Reportes</span>
                 </a>
 
-                {% if es_admin or request.user.is_superuser %}
                 <p class="menu-title">ADMINISTRACION</p>
 
                 <a href="{% url 'usuarios' %}" class="menu-link {% if request.resolver_match.url_name == 'usuarios' %}active{% endif %}">
