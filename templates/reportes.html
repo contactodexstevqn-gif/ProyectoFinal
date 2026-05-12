@@ -1,0 +1,544 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load formatos %}
+
+{% block titulo %}Reportes | {{ configuracion_tienda.nombre_tienda|default:'Fucsia Boutique' }}{% endblock %}
+
+{% block estilos %}
+<link rel="stylesheet" href="{% static 'usuarios.css' %}">
+<link rel="stylesheet" href="{% static 'productos.css' %}">
+<link rel="stylesheet" href="{% static 'ventas.css' %}">
+<link rel="stylesheet" href="{% static 'reportes.css' %}">
+{% endblock %}
+
+{% block topbar_info %}
+<section class="topbar-icon">
+    <i class='bx bx-line-chart'></i>
+</section>
+
+<section>
+    <strong>Reportes</strong>
+    <span>Estadísticas, análisis y exportación</span>
+</section>
+{% endblock %}
+
+{% block contenido %}
+
+<section class="page-header reportes-page-header">
+    <header>
+        <p>Bienvenido, {{ request.user.username }}</p>
+        <h1>Reportes</h1>
+        <span>Estadísticas, análisis y exportación</span>
+    </header>
+
+    <nav class="header-actions reportes-actions">
+        <a href="#" class="btn-outline">
+            <i class='bx bx-file'></i>
+            Exportar Excel
+        </a>
+
+        <a href="#" class="btn-primary">
+            <i class='bx bxs-file-pdf'></i>
+            Exportar PDF
+        </a>
+    </nav>
+</section>
+
+<section class="panel-card reportes-filter-panel">
+    <form method="GET" action="" class="reportes-filter-form">
+        <section class="report-filter-field">
+            <label>Fecha inicial</label>
+            <section class="report-input-icon">
+                <i class='bx bx-calendar'></i>
+                <input type="date" name="fecha_inicio" value="{{ fecha_inicio }}">
+            </section>
+        </section>
+
+        <section class="report-filter-field">
+            <label>Fecha final</label>
+            <section class="report-input-icon">
+                <i class='bx bx-calendar'></i>
+                <input type="date" name="fecha_fin" value="{{ fecha_fin }}">
+            </section>
+        </section>
+
+        <section class="report-filter-field">
+            <label>Vendedor</label>
+            <section class="report-input-icon">
+                <i class='bx bx-user'></i>
+                <select name="vendedor">
+                    <option value="">Todos los vendedores</option>
+                    {% for vendedor in vendedores %}
+                        {% with vendedor_id_text=vendedor.id|stringformat:"s" %}
+                        <option value="{{ vendedor.id }}" {% if vendedor_id == vendedor_id_text %}selected{% endif %}>
+                            {% if vendedor.get_full_name %}
+                                {{ vendedor.get_full_name }} · {{ vendedor.username }}
+                            {% else %}
+                                {{ vendedor.username }}
+                            {% endif %}
+                        </option>
+                        {% endwith %}
+                    {% endfor %}
+                </select>
+            </section>
+        </section>
+
+        <section class="report-filter-field">
+            <label>Categoría</label>
+            <section class="report-input-icon">
+                <i class='bx bx-category'></i>
+                <select name="categoria">
+                    <option value="">Todas las categorías</option>
+                    {% for categoria in categorias %}
+                        {% with categoria_id_text=categoria.id|stringformat:"s" %}
+                        <option value="{{ categoria.id }}" {% if categoria_id == categoria_id_text %}selected{% endif %}>
+                            {{ categoria.nombre }}
+                        </option>
+                        {% endwith %}
+                    {% endfor %}
+                </select>
+            </section>
+        </section>
+
+        <section class="report-filter-field">
+            <label>Producto</label>
+            <section class="report-input-icon">
+                <i class='bx bx-package'></i>
+                <select name="producto">
+                    <option value="">Todos los productos</option>
+                    {% for producto in productos %}
+                        {% with producto_id_text=producto.id|stringformat:"s" %}
+                        <option value="{{ producto.id }}" {% if producto_id == producto_id_text %}selected{% endif %}>
+                            {{ producto.nombre }} · {{ producto.color }} · Talla {{ producto.talla }}
+                        </option>
+                        {% endwith %}
+                    {% endfor %}
+                </select>
+            </section>
+        </section>
+
+        <section class="report-filter-field">
+            <label>Tipo de reporte</label>
+            <section class="report-input-icon">
+                <i class='bx bx-file-find'></i>
+                <select name="tipo_reporte">
+                    <option value="general" {% if tipo_reporte == 'general' %}selected{% endif %}>Resumen general</option>
+                    <option value="ventas" {% if tipo_reporte == 'ventas' %}selected{% endif %}>Ventas</option>
+                    <option value="inventario" {% if tipo_reporte == 'inventario' %}selected{% endif %}>Inventario</option>
+                    <option value="clientes" {% if tipo_reporte == 'clientes' %}selected{% endif %}>Clientes</option>
+                </select>
+            </section>
+        </section>
+
+        <section class="report-filter-actions">
+            <button type="submit" class="btn-filter">
+                <i class='bx bx-filter-alt'></i>
+                Filtrar
+            </button>
+
+            <a href="#" class="btn-clear">
+                <i class='bx bx-refresh'></i>
+                Limpiar
+            </a>
+        </section>
+    </form>
+</section>
+
+<section class="stats-grid reportes-kpi-grid">
+    <article class="stat-card report-kpi-card">
+        <section class="stat-icon">
+            <i class='bx bx-dollar-circle'></i>
+        </section>
+
+        <section>
+            <span>Ventas totales</span>
+            <h3>{{ ventas_totales|default:"0"|formato_pesos }}</h3>
+            <p>Total en el período seleccionado</p>
+            <small class="report-positive">
+                <i class='bx bx-up-arrow-alt'></i>
+                {{ porcentaje_ventas|default:"0" }}% vs. período anterior
+            </small>
+        </section>
+    </article>
+
+    <article class="stat-card report-kpi-card">
+        <section class="stat-icon">
+            <i class='bx bx-wallet'></i>
+        </section>
+
+        <section>
+            <span>Ingresos del mes</span>
+            <h3>{{ ingresos_mes|default:"0"|formato_pesos }}</h3>
+            <p>Ingresos del mes actual</p>
+            <small class="report-positive">
+                <i class='bx bx-up-arrow-alt'></i>
+                {{ porcentaje_mes|default:"0" }}% vs. mes anterior
+            </small>
+        </section>
+    </article>
+
+    <article class="stat-card report-kpi-card">
+        <section class="stat-icon">
+            <i class='bx bx-shopping-bag'></i>
+        </section>
+
+        <section>
+            <span>Productos vendidos</span>
+            <h3>{{ productos_vendidos|default:"0"|formato_numero }}</h3>
+            <p>Unidades vendidas</p>
+            <small class="report-positive">
+                <i class='bx bx-up-arrow-alt'></i>
+                {{ porcentaje_productos|default:"0" }}% vs. período anterior
+            </small>
+        </section>
+    </article>
+
+    <article class="stat-card report-kpi-card">
+        <section class="stat-icon">
+            <i class='bx bx-user-plus'></i>
+        </section>
+
+        <section>
+            <span>Clientes nuevos</span>
+            <h3>{{ clientes_nuevos|default:"0"|formato_numero }}</h3>
+            <p>Nuevos clientes en el período</p>
+            <small class="report-positive">
+                <i class='bx bx-up-arrow-alt'></i>
+                {{ porcentaje_clientes|default:"0" }}% vs. período anterior
+            </small>
+        </section>
+    </article>
+</section>
+
+<section class="reportes-analytics-grid">
+    <article class="panel-card report-chart-card report-line-card">
+        <header class="panel-header">
+            <section>
+                <h2>Ventas por mes</h2>
+                <p>Evolución de ingresos en los últimos meses</p>
+            </section>
+
+            <span class="badge-custom">Últimos 6 meses</span>
+        </header>
+
+        <section class="report-line-chart">
+            <section class="report-chart-y">
+                <span>$600K</span>
+                <span>$500K</span>
+                <span>$400K</span>
+                <span>$300K</span>
+                <span>$200K</span>
+                <span>$100K</span>
+                <span>$0</span>
+            </section>
+
+            <section class="report-line-area">
+                <section class="report-line-grid"></section>
+
+                <section class="report-line-svg">
+                    <svg viewBox="0 0 600 230" preserveAspectRatio="none">
+                        <defs>
+                            <linearGradient id="reportLineGradient" x1="0" x2="0" y1="0" y2="1">
+                                <stop offset="0%" stop-color="#d41473" stop-opacity="0.28"></stop>
+                                <stop offset="100%" stop-color="#d41473" stop-opacity="0"></stop>
+                            </linearGradient>
+                        </defs>
+
+                        <path d="{{ ventas_meses_area_path|default:'M20 165 L130 150 L240 158 L350 90 L460 122 L580 110 L580 230 L20 230 Z' }}" fill="url(#reportLineGradient)"></path>
+                        <path d="{{ ventas_meses_line_path|default:'M20 165 L130 150 L240 158 L350 90 L460 122 L580 110' }}" fill="none" stroke="#d41473" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                </section>
+
+                <section class="report-line-points">
+                    {% for mes in ventas_meses %}
+                    <article style="left: {{ mes.left }}%; bottom: {{ mes.bottom }}%;">
+                        <strong>{{ mes.total|formato_pesos }}</strong>
+                        <span></span>
+                    </article>
+                    {% empty %}
+                    <article style="left: 3%; bottom: 28%;">
+                        <strong>$280.000</strong>
+                        <span></span>
+                    </article>
+
+                    <article style="left: 21%; bottom: 34%;">
+                        <strong>$310.000</strong>
+                        <span></span>
+                    </article>
+
+                    <article style="left: 39%; bottom: 31%;">
+                        <strong>$290.000</strong>
+                        <span></span>
+                    </article>
+
+                    <article style="left: 57%; bottom: 58%;">
+                        <strong>$450.000</strong>
+                        <span></span>
+                    </article>
+
+                    <article style="left: 75%; bottom: 45%;">
+                        <strong>$375.000</strong>
+                        <span></span>
+                    </article>
+
+                    <article style="left: 93%; bottom: 50%;">
+                        <strong>$420.000</strong>
+                        <span></span>
+                    </article>
+                    {% endfor %}
+                </section>
+
+                <section class="report-chart-x">
+                    {% for mes in ventas_meses %}
+                        <span>{{ mes.nombre }}</span>
+                    {% empty %}
+                        <span>Dic 2025</span>
+                        <span>Ene 2026</span>
+                        <span>Feb 2026</span>
+                        <span>Mar 2026</span>
+                        <span>Abr 2026</span>
+                        <span>May 2026</span>
+                    {% endfor %}
+                </section>
+            </section>
+        </section>
+    </article>
+
+    <article class="panel-card report-chart-card">
+        <header class="panel-header">
+            <section>
+                <h2>Ventas por categoría</h2>
+                <p>Distribución de ingresos por categoría</p>
+            </section>
+
+            <span class="badge-custom">Distribución</span>
+        </header>
+
+        <section class="report-donut-layout">
+            <section class="report-donut" style="background: conic-gradient({{ donut_gradient|default:'#d41473 0 50%, #ff7b8a 50% 75%, #8b5cf6 75% 90%, #f6c453 90% 100%' }});">
+                <section>
+                    <strong>{{ ventas_totales|default:"0"|formato_pesos }}</strong>
+                    <span>Total</span>
+                </section>
+            </section>
+
+            <section class="report-category-list">
+                {% for categoria in ventas_categorias %}
+                <article>
+                    <span style="background: {{ categoria.color|default:'#d41473' }};"></span>
+                    <p>{{ categoria.nombre }}</p>
+                    <strong>{{ categoria.total|default:"0"|formato_pesos }} ({{ categoria.porcentaje|default:"0" }}%)</strong>
+                </article>
+                {% empty %}
+                <article>
+                    <span style="background: #d41473;"></span>
+                    <p>Ropa</p>
+                    <strong>$335.000 (50%)</strong>
+                </article>
+
+                <article>
+                    <span style="background: #ff7b8a;"></span>
+                    <p>Accesorios</p>
+                    <strong>$167.500 (25%)</strong>
+                </article>
+
+                <article>
+                    <span style="background: #8b5cf6;"></span>
+                    <p>Calzado</p>
+                    <strong>$100.500 (15%)</strong>
+                </article>
+
+                <article>
+                    <span style="background: #f6c453;"></span>
+                    <p>Bolsos</p>
+                    <strong>$67.000 (10%)</strong>
+                </article>
+                {% endfor %}
+            </section>
+        </section>
+    </article>
+</section>
+
+<section class="reportes-secondary-grid">
+    <article class="panel-card report-chart-card">
+        <header class="panel-header">
+            <section>
+                <h2>Top productos vendidos</h2>
+                <p>Productos con mayor salida</p>
+            </section>
+
+            <span class="badge-custom">Top 5</span>
+        </header>
+
+        <section class="report-bars">
+            {% for producto in top_productos %}
+            <article>
+                <section class="report-bar-wrapper">
+                    <span style="height: {{ producto.porcentaje|default:'20' }}%;"></span>
+                </section>
+
+                <strong>{{ producto.cantidad|default:"0"|formato_numero }}</strong>
+                <p>{{ producto.nombre }}</p>
+                <small>{{ producto.total|default:"0"|formato_pesos }}</small>
+            </article>
+            {% empty %}
+            <article>
+                <section class="report-bar-wrapper">
+                    <span style="height: 90%;"></span>
+                </section>
+                <strong>35</strong>
+                <p>Producto 5</p>
+                <small>$150.000</small>
+            </article>
+
+            <article>
+                <section class="report-bar-wrapper">
+                    <span style="height: 62%;"></span>
+                </section>
+                <strong>22</strong>
+                <p>Producto 1</p>
+                <small>$100.000</small>
+            </article>
+
+            <article>
+                <section class="report-bar-wrapper">
+                    <span style="height: 50%;"></span>
+                </section>
+                <strong>18</strong>
+                <p>Producto 3</p>
+                <small>$90.000</small>
+            </article>
+
+            <article>
+                <section class="report-bar-wrapper">
+                    <span style="height: 42%;"></span>
+                </section>
+                <strong>15</strong>
+                <p>Producto 4</p>
+                <small>$75.000</small>
+            </article>
+
+            <article>
+                <section class="report-bar-wrapper">
+                    <span style="height: 34%;"></span>
+                </section>
+                <strong>12</strong>
+                <p>Producto 2</p>
+                <small>$60.000</small>
+            </article>
+            {% endfor %}
+        </section>
+    </article>
+
+    <article class="panel-card report-business-card">
+        <header class="panel-header">
+            <section>
+                <h2>Resumen del negocio</h2>
+                <p>Indicadores clave del período</p>
+            </section>
+
+            <span class="badge-custom">Información clave</span>
+        </header>
+
+        <section class="business-summary-grid">
+            <article>
+                <i class='bx bx-pie-chart-alt-2'></i>
+                <section>
+                    <span>Categoría más vendida</span>
+                    <strong>{{ categoria_top|default:"Sin datos" }}</strong>
+                </section>
+            </article>
+
+            <article>
+                <i class='bx bx-dollar-circle'></i>
+                <section>
+                    <span>Ticket promedio</span>
+                    <strong>{{ ticket_promedio|default:"0"|formato_pesos }}</strong>
+                </section>
+            </article>
+
+            <article>
+                <i class='bx bx-user'></i>
+                <section>
+                    <span>Vendedor top</span>
+                    <strong>{{ vendedor_top|default:"Sin datos" }}</strong>
+                </section>
+            </article>
+
+            <article>
+                <i class='bx bx-error'></i>
+                <section>
+                    <span>Stock crítico</span>
+                    <strong>{{ productos_stock_critico|default:"0"|formato_numero }} productos</strong>
+                </section>
+            </article>
+        </section>
+    </article>
+</section>
+
+<section class="panel-card reportes-available-panel">
+    <header class="panel-header">
+        <section>
+            <h2>Reportes disponibles</h2>
+            <p>Genera reportes detallados según tus necesidades</p>
+        </section>
+
+        <span class="badge-custom">Generadores</span>
+    </header>
+
+    <section class="reportes-available-grid">
+        <article>
+            <section class="report-option-icon">
+                <i class='bx bx-file'></i>
+            </section>
+
+            <section>
+                <h3>Reporte completo</h3>
+                <p>Resumen general de ventas, productos, inventario y clientes.</p>
+            </section>
+
+            <a href="#" class="report-option-button">
+                <i class='bx bx-file'></i>
+                Generar
+            </a>
+        </article>
+
+        <article>
+            <section class="report-option-icon">
+                <i class='bx bx-cart'></i>
+            </section>
+
+            <section>
+                <h3>Reporte de ventas</h3>
+                <p>Detalle de ventas por fecha, vendedor, producto y cliente.</p>
+            </section>
+
+            <a href="#" class="report-option-button">
+                <i class='bx bx-file'></i>
+                Generar
+            </a>
+        </article>
+
+        <article>
+            <section class="report-option-icon">
+                <i class='bx bx-package'></i>
+            </section>
+
+            <section>
+                <h3>Reporte de inventario</h3>
+                <p>Estado actual del inventario, stock, valor y movimientos.</p>
+            </section>
+
+            <a href="#" class="report-option-button">
+                <i class='bx bx-file'></i>
+                Generar
+            </a>
+        </article>
+    </section>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'dashboard.js' %}"></script>
+{% endblock %}
