@@ -37,7 +37,7 @@
             Exportar Excel
         </a>
 
-        <a href="#" class="btn-primary">
+        <a href="{% url 'reporte_pdf_completo' %}?{{ request.GET.urlencode }}" class="btn-primary">
             <i class='bx bxs-file-pdf'></i>
             Exportar PDF
         </a>
@@ -407,7 +407,7 @@
                 <p>Resumen general de ventas, productos, inventario y clientes.</p>
             </section>
 
-            <a href="#" class="report-option-button">
+            <a href="{% url 'reporte_pdf_completo' %}?{{ request.GET.urlencode }}" class="report-option-button">
                 <i class='bx bx-file'></i>
                 Generar
             </a>
@@ -423,7 +423,7 @@
                 <p>Detalle de ventas por fecha, vendedor, producto y cliente.</p>
             </section>
 
-            <a href="#" class="report-option-button">
+            <a href="{% url 'reporte_pdf_ventas' %}?{{ request.GET.urlencode }}" class="report-option-button">
                 <i class='bx bx-file'></i>
                 Generar
             </a>
@@ -439,7 +439,7 @@
                 <p>Estado actual del inventario, stock, valor y movimientos.</p>
             </section>
 
-            <a href="#" class="report-option-button">
+            <a href="{% url 'reporte_pdf_inventario' %}?{{ request.GET.urlencode }}" class="report-option-button">
                 <i class='bx bx-file'></i>
                 Generar
             </a>

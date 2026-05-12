@@ -4,12 +4,19 @@ from math import floor, log10
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db.models import Sum
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
 from django.utils.dateparse import parse_date
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_CENTER, TA_LEFT
+from reportlab.lib.pagesizes import landscape, letter
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.units import inch
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from backend.permissions import GRUPO_ADMINISTRADOR, admin_required, es_administrador, rol_usuario
-from productos.models import Categoria, Producto
+from productos.models import Categoria, MovimientoInventario, Producto
 from ventas.models import Cliente, Venta
 
 
@@ -97,6 +104,11 @@ def ventas_filtradas_reportes(request, ventas):
         ventas = ventas.filter(producto_id=filtros['producto_id'])
 
     return ventas, filtros
+
+
+def formato_pesos_pdf(valor):
+    valor = int(valor or 0)
+    return f"${valor:,}".replace(',', '.')
 
 
 def formato_eje_pesos(valor):
@@ -237,7 +249,7 @@ def construir_grafica_meses(ventas):
         puntos.append(f'{x} {y}')
 
         mes['left'] = round(4 + ((index / 5) * 92), 2) if len(meses) > 1 else 50
-        mes['bottom'] = round(proporcion * 82, 2)
+        mes['bottom'] = round(proporcion * 92, 2)
 
     line_path = 'M' + ' L'.join(puntos) if puntos else ''
 
@@ -282,9 +294,7 @@ def construir_donut_categorias(categorias):
     return ', '.join(partes), resultado
 
 
-@login_required(login_url='login')
-@admin_required
-def reportes(request):
+def obtener_datos_reportes(request):
     ventas_base = Venta.objects.select_related(
         'producto',
         'producto__categoria',
@@ -385,13 +395,9 @@ def reportes(request):
     categorias = Categoria.objects.all().order_by('nombre')
     productos = Producto.objects.select_related('categoria').all().order_by('nombre')
 
-    return render(request, 'reportes.html', {
-        'fecha_inicio': filtros['fecha_inicio'],
-        'fecha_fin': filtros['fecha_fin'],
-        'vendedor_id': filtros['vendedor_id'],
-        'categoria_id': filtros['categoria_id'],
-        'producto_id': filtros['producto_id'],
-        'tipo_reporte': filtros['tipo_reporte'],
+    return {
+        'ventas': ventas,
+        'filtros': filtros,
         'vendedores': vendedores,
         'categorias': categorias,
         'productos': productos,
@@ -414,6 +420,351 @@ def reportes(request):
         'ticket_promedio': ticket_promedio,
         'vendedor_top': vendedor_top,
         'productos_stock_critico': productos_stock_critico,
+    }
+
+
+def crear_estilos_pdf():
+    estilos = getSampleStyleSheet()
+
+    return {
+        'titulo': ParagraphStyle(
+            'TituloReporte',
+            parent=estilos['Title'],
+            fontName='Helvetica-Bold',
+            fontSize=20,
+            leading=24,
+            textColor=colors.HexColor('#111827'),
+            alignment=TA_CENTER,
+            spaceAfter=14,
+        ),
+        'subtitulo': ParagraphStyle(
+            'SubtituloReporte',
+            parent=estilos['Normal'],
+            fontName='Helvetica-Bold',
+            fontSize=13,
+            leading=16,
+            textColor=colors.HexColor('#d41473'),
+            alignment=TA_LEFT,
+            spaceBefore=12,
+            spaceAfter=8,
+        ),
+        'normal': ParagraphStyle(
+            'TextoReporte',
+            parent=estilos['Normal'],
+            fontName='Helvetica',
+            fontSize=9,
+            leading=12,
+            textColor=colors.HexColor('#374151'),
+        ),
+        'pequeno': ParagraphStyle(
+            'TextoPequeno',
+            parent=estilos['Normal'],
+            fontName='Helvetica',
+            fontSize=8,
+            leading=10,
+            textColor=colors.HexColor('#6b7280'),
+        ),
+    }
+
+
+def tabla_pdf(data, col_widths=None, header=True):
+    tabla = Table(data, colWidths=col_widths, repeatRows=1 if header else 0)
+
+    estilos = [
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 0), (-1, -1), 8),
+        ('TEXTCOLOR', (0, 0), (-1, -1), colors.HexColor('#111827')),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#e5e7eb')),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9fafb')]),
+        ('LEFTPADDING', (0, 0), (-1, -1), 7),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 7),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+    ]
+
+    if header:
+        estilos.extend([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#d41473')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+        ])
+
+    tabla.setStyle(TableStyle(estilos))
+    return tabla
+
+
+def crear_pdf_response(nombre_archivo, titulo, elementos, pagesize=landscape(letter)):
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
+
+    doc = SimpleDocTemplate(
+        response,
+        pagesize=pagesize,
+        rightMargin=0.45 * inch,
+        leftMargin=0.45 * inch,
+        topMargin=0.45 * inch,
+        bottomMargin=0.45 * inch,
+        title=titulo,
+    )
+
+    doc.build(elementos)
+    return response
+
+
+def agregar_encabezado_pdf(elementos, estilos, titulo, request, filtros):
+    fecha_generacion = timezone.localtime(timezone.now()).strftime('%d/%m/%Y %I:%M %p')
+
+    elementos.append(Paragraph(titulo, estilos['titulo']))
+
+    resumen = [
+        ['Generado por', request.user.username, 'Fecha de generación', fecha_generacion],
+        ['Fecha inicial', filtros['fecha_inicio'] or 'Todas', 'Fecha final', filtros['fecha_fin'] or 'Todas'],
+        ['Vendedor', filtros['vendedor_id'] or 'Todos', 'Tipo de reporte', filtros['tipo_reporte']],
+    ]
+
+    elementos.append(tabla_pdf(resumen, [1.3 * inch, 2.2 * inch, 1.5 * inch, 2.4 * inch], header=False))
+    elementos.append(Spacer(1, 12))
+
+
+@login_required(login_url='login')
+@admin_required
+def reportes(request):
+    datos = obtener_datos_reportes(request)
+
+    return render(request, 'reportes.html', {
+        'fecha_inicio': datos['filtros']['fecha_inicio'],
+        'fecha_fin': datos['filtros']['fecha_fin'],
+        'vendedor_id': datos['filtros']['vendedor_id'],
+        'categoria_id': datos['filtros']['categoria_id'],
+        'producto_id': datos['filtros']['producto_id'],
+        'tipo_reporte': datos['filtros']['tipo_reporte'],
+        'vendedores': datos['vendedores'],
+        'categorias': datos['categorias'],
+        'productos': datos['productos'],
+        'ventas_totales': datos['ventas_totales'],
+        'ingresos_mes': datos['ingresos_mes'],
+        'productos_vendidos': datos['productos_vendidos'],
+        'clientes_nuevos': datos['clientes_nuevos'],
+        'porcentaje_ventas': datos['porcentaje_ventas'],
+        'porcentaje_mes': datos['porcentaje_mes'],
+        'porcentaje_productos': datos['porcentaje_productos'],
+        'porcentaje_clientes': datos['porcentaje_clientes'],
+        'ventas_meses': datos['ventas_meses'],
+        'ventas_meses_line_path': datos['ventas_meses_line_path'],
+        'ventas_meses_area_path': datos['ventas_meses_area_path'],
+        'escala_y': datos['escala_y'],
+        'donut_gradient': datos['donut_gradient'],
+        'ventas_categorias': datos['ventas_categorias'],
+        'top_productos': datos['top_productos'],
+        'categoria_top': datos['categoria_top'],
+        'ticket_promedio': datos['ticket_promedio'],
+        'vendedor_top': datos['vendedor_top'],
+        'productos_stock_critico': datos['productos_stock_critico'],
         'es_admin': es_administrador(request.user),
         'rol_usuario': rol_usuario(request.user),
     })
+
+
+@login_required(login_url='login')
+@admin_required
+def exportar_reporte_completo_pdf(request):
+    datos = obtener_datos_reportes(request)
+    estilos = crear_estilos_pdf()
+    elementos = []
+
+    agregar_encabezado_pdf(elementos, estilos, 'Reporte completo - Fucsia Boutique', request, datos['filtros'])
+
+    elementos.append(Paragraph('Resumen general', estilos['subtitulo']))
+
+    resumen = [
+        ['Indicador', 'Valor'],
+        ['Ventas totales', formato_pesos_pdf(datos['ventas_totales'])],
+        ['Ingresos del mes', formato_pesos_pdf(datos['ingresos_mes'])],
+        ['Productos vendidos', datos['productos_vendidos']],
+        ['Clientes nuevos', datos['clientes_nuevos']],
+        ['Ticket promedio', formato_pesos_pdf(datos['ticket_promedio'])],
+        ['Categoría más vendida', datos['categoria_top']],
+        ['Vendedor top', datos['vendedor_top']],
+        ['Productos en stock crítico', datos['productos_stock_critico']],
+    ]
+
+    elementos.append(tabla_pdf(resumen, [3.2 * inch, 4.8 * inch]))
+    elementos.append(Spacer(1, 12))
+
+    elementos.append(Paragraph('Ventas por categoría', estilos['subtitulo']))
+
+    categorias = [['Categoría', 'Total vendido', 'Participación']]
+
+    for categoria in datos['ventas_categorias']:
+        categorias.append([
+            categoria['nombre'],
+            formato_pesos_pdf(categoria['total']),
+            f"{categoria['porcentaje']}%",
+        ])
+
+    if len(categorias) == 1:
+        categorias.append(['Sin datos', '$0', '0%'])
+
+    elementos.append(tabla_pdf(categorias, [3.2 * inch, 2.4 * inch, 1.6 * inch]))
+    elementos.append(Spacer(1, 12))
+
+    elementos.append(Paragraph('Top productos vendidos', estilos['subtitulo']))
+
+    top_productos = [['Producto', 'Cantidad', 'Total vendido']]
+
+    for producto in datos['top_productos']:
+        top_productos.append([
+            producto['nombre'],
+            producto['cantidad'],
+            formato_pesos_pdf(producto['total']),
+        ])
+
+    if len(top_productos) == 1:
+        top_productos.append(['Sin datos', '0', '$0'])
+
+    elementos.append(tabla_pdf(top_productos, [3.6 * inch, 1.6 * inch, 2.4 * inch]))
+
+    return crear_pdf_response('reporte_completo.pdf', 'Reporte completo', elementos)
+
+
+@login_required(login_url='login')
+@admin_required
+def exportar_reporte_ventas_pdf(request):
+    datos = obtener_datos_reportes(request)
+    estilos = crear_estilos_pdf()
+    elementos = []
+
+    agregar_encabezado_pdf(elementos, estilos, 'Reporte de ventas - Fucsia Boutique', request, datos['filtros'])
+
+    elementos.append(Paragraph('Resumen de ventas', estilos['subtitulo']))
+
+    resumen = [
+        ['Ventas totales', formato_pesos_pdf(datos['ventas_totales'])],
+        ['Productos vendidos', datos['productos_vendidos']],
+        ['Ticket promedio', formato_pesos_pdf(datos['ticket_promedio'])],
+        ['Vendedor top', datos['vendedor_top']],
+    ]
+
+    elementos.append(tabla_pdf(resumen, [3.2 * inch, 4.8 * inch], header=False))
+    elementos.append(Spacer(1, 12))
+
+    elementos.append(Paragraph('Detalle de ventas', estilos['subtitulo']))
+
+    ventas = datos['ventas'].order_by('-fecha')[:120]
+
+    tabla_ventas = [['Fecha', 'Producto', 'Categoría', 'Cliente', 'Vendedor', 'Cantidad', 'Total']]
+
+    for venta in ventas:
+        fecha = timezone.localtime(venta.fecha).strftime('%d/%m/%Y %I:%M %p')
+        categoria = venta.producto.categoria.nombre if venta.producto.categoria else 'Sin categoría'
+        cliente = venta.cliente.nombre if venta.cliente else 'Sin cliente'
+
+        tabla_ventas.append([
+            fecha,
+            venta.producto.nombre,
+            categoria,
+            cliente,
+            venta.vendedor.username,
+            venta.cantidad,
+            formato_pesos_pdf(venta.total),
+        ])
+
+    if len(tabla_ventas) == 1:
+        tabla_ventas.append(['Sin datos', '', '', '', '', '', '$0'])
+
+    elementos.append(tabla_pdf(
+        tabla_ventas,
+        [1.3 * inch, 1.6 * inch, 1.25 * inch, 1.4 * inch, 1.2 * inch, 0.75 * inch, 1.0 * inch]
+    ))
+
+    return crear_pdf_response('reporte_ventas.pdf', 'Reporte de ventas', elementos)
+
+
+@login_required(login_url='login')
+@admin_required
+def exportar_reporte_inventario_pdf(request):
+    datos = obtener_datos_reportes(request)
+    estilos = crear_estilos_pdf()
+    elementos = []
+
+    agregar_encabezado_pdf(elementos, estilos, 'Reporte de inventario - Fucsia Boutique', request, datos['filtros'])
+
+    productos = Producto.objects.select_related('categoria').all().order_by('nombre')
+    total_productos = productos.count()
+    productos_sin_stock = productos.filter(stock=0).count()
+    productos_stock_critico = productos.filter(stock__lte=5).count()
+    valor_inventario = sum((producto.precio or 0) * producto.stock for producto in productos)
+
+    elementos.append(Paragraph('Resumen de inventario', estilos['subtitulo']))
+
+    resumen = [
+        ['Indicador', 'Valor'],
+        ['Total de productos', total_productos],
+        ['Productos sin stock', productos_sin_stock],
+        ['Productos con stock crítico', productos_stock_critico],
+        ['Valor total del inventario', formato_pesos_pdf(valor_inventario)],
+    ]
+
+    elementos.append(tabla_pdf(resumen, [3.2 * inch, 4.8 * inch]))
+    elementos.append(Spacer(1, 12))
+
+    elementos.append(Paragraph('Inventario actual', estilos['subtitulo']))
+
+    tabla_productos = [['Producto', 'Categoría', 'Color', 'Talla', 'Precio', 'Stock', 'Valor stock']]
+
+    for producto in productos[:140]:
+        categoria = producto.categoria.nombre if producto.categoria else 'Sin categoría'
+        valor_stock = (producto.precio or 0) * producto.stock
+
+        tabla_productos.append([
+            producto.nombre,
+            categoria,
+            producto.color or '',
+            producto.talla or '',
+            formato_pesos_pdf(producto.precio),
+            producto.stock,
+            formato_pesos_pdf(valor_stock),
+        ])
+
+    if len(tabla_productos) == 1:
+        tabla_productos.append(['Sin datos', '', '', '', '$0', '0', '$0'])
+
+    elementos.append(tabla_pdf(
+        tabla_productos,
+        [1.7 * inch, 1.4 * inch, 1.1 * inch, 0.85 * inch, 1.0 * inch, 0.75 * inch, 1.1 * inch]
+    ))
+    elementos.append(Spacer(1, 12))
+
+    elementos.append(Paragraph('Movimientos recientes de inventario', estilos['subtitulo']))
+
+    movimientos = MovimientoInventario.objects.select_related(
+        'producto',
+        'producto__categoria'
+    ).order_by('-fecha')[:60]
+
+    tabla_movimientos = [['Fecha', 'Producto', 'Tipo', 'Cantidad', 'Stock antes', 'Stock nuevo', 'Motivo']]
+
+    for movimiento in movimientos:
+        fecha = timezone.localtime(movimiento.fecha).strftime('%d/%m/%Y %I:%M %p')
+
+        tabla_movimientos.append([
+            fecha,
+            movimiento.producto.nombre,
+            movimiento.get_tipo_display(),
+            movimiento.cantidad,
+            movimiento.stock_anterior,
+            movimiento.stock_nuevo,
+            movimiento.get_motivo_display() if movimiento.motivo else 'Sin motivo',
+        ])
+
+    if len(tabla_movimientos) == 1:
+        tabla_movimientos.append(['Sin datos', '', '', '', '', '', ''])
+
+    elementos.append(tabla_pdf(
+        tabla_movimientos,
+        [1.45 * inch, 1.7 * inch, 1.0 * inch, 0.85 * inch, 0.85 * inch, 0.85 * inch, 1.4 * inch]
+    ))
+
+    return crear_pdf_response('reporte_inventario.pdf', 'Reporte de inventario', elementos)
