@@ -26,7 +26,8 @@ class ProductoForm(forms.ModelForm):
             'color',
             'precio',
             'stock',
-            'imagen'
+            'imagen',
+            'imagen_url'
         ]
 
         widgets = {
@@ -61,6 +62,10 @@ class ProductoForm(forms.ModelForm):
                 'class': 'form-control',
                 'accept': 'image/*'
             }),
+            'imagen_url': forms.URLInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'https://ejemplo.com/imagen.jpg'
+            }),
         }
 
         labels = {
@@ -70,7 +75,8 @@ class ProductoForm(forms.ModelForm):
             'color': 'Color',
             'precio': 'Precio',
             'stock': 'Stock',
-            'imagen': 'Imagen del producto'
+            'imagen': 'Imagen del producto',
+            'imagen_url': 'URL de imagen'
         }
 
 
@@ -82,5 +88,6 @@ class ProductoEditForm(ProductoForm):
             'talla',
             'color',
             'precio',
-            'imagen'
+            'imagen',
+            'imagen_url'
         ]

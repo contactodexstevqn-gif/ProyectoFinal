@@ -981,3 +981,60 @@ body.dark-mode .modal-confirm-cancel {
 body.dark-mode .modal-confirm-cancel:hover {
     background: #374151;
 }
+
+/* Scroll para tabla de usuarios */
+.users-panel {
+    align-self: start;
+}
+
+.users-panel .table-responsive {
+    max-height: 560px;
+    overflow: auto;
+    border-radius: 16px;
+}
+
+/* Encabezado fijo dentro del scroll */
+.users-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--card);
+}
+
+/* Scroll para actividad reciente */
+.activity-panel {
+    align-self: start;
+}
+
+.activity-list {
+    max-height: 360px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+/* Scroll bonito en usuarios */
+.users-panel .table-responsive,
+.activity-list {
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) transparent;
+}
+
+.users-panel .table-responsive::-webkit-scrollbar,
+.activity-list::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+}
+
+.users-panel .table-responsive::-webkit-scrollbar-thumb,
+.activity-list::-webkit-scrollbar-thumb {
+    background: var(--soft-accent);
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background-clip: content-box;
+}
+
+.users-panel .table-responsive::-webkit-scrollbar-thumb:hover,
+.activity-list::-webkit-scrollbar-thumb:hover {
+    background: var(--accent);
+    background-clip: content-box;
+}

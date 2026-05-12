@@ -3,3 +3,4 @@ mysqlclient
 pandas
 openpyxl
 Pillow
+reportlab==4.2.5

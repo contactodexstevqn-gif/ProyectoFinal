@@ -17,7 +17,7 @@
 
 <section>
     <strong>Control de inventario</strong>
-    <span>Stock, alertas y reposición</span>
+    <span>Stock, alertas y movimientos</span>
 </section>
 {% endblock %}
 
@@ -45,7 +45,7 @@
 
         <section>
             <span>Total productos</span>
-            <h3>{{ total_productos|default:"0" }}</h3>
+            <h3>{{ total_productos|default:"0"|formato_numero }}</h3>
             <p>Registrados</p>
         </section>
     </article>
@@ -57,7 +57,7 @@
 
         <section>
             <span>Stock bajo</span>
-            <h3>{{ stock_bajo|default:"0" }}</h3>
+            <h3>{{ stock_bajo|default:"0"|formato_numero }}</h3>
             <p class="warning-text">Revisar inventario</p>
         </section>
     </article>
@@ -69,7 +69,7 @@
 
         <section>
             <span>Sin stock</span>
-            <h3>{{ sin_stock|default:"0" }}</h3>
+            <h3>{{ sin_stock|default:"0"|formato_numero }}</h3>
             <p class="warning-text">Productos agotados</p>
         </section>
     </article>
@@ -100,17 +100,17 @@
 
         <section class="inventory-health-list">
             <article>
-                <strong>{{ disponibles|default:"0" }}</strong>
+                <strong>{{ disponibles|default:"0"|formato_numero }}</strong>
                 <span>Disponibles</span>
             </article>
 
             <article>
-                <strong>{{ stock_bajo|default:"0" }}</strong>
+                <strong>{{ stock_bajo|default:"0"|formato_numero }}</strong>
                 <span>Stock bajo</span>
             </article>
 
             <article>
-                <strong>{{ sin_stock|default:"0" }}</strong>
+                <strong>{{ sin_stock|default:"0"|formato_numero }}</strong>
                 <span>Agotados</span>
             </article>
         </section>
@@ -133,8 +133,13 @@
             <article class="inventory-priority-item">
                 <section class="product-info">
                     <span class="product-image-box">
-                        {% if producto.imagen %}
-                            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+                        {% if producto.imagen_final_url %}
+                            <img
+                                src="{{ producto.imagen_final_url }}"
+                                alt="{{ producto.nombre }}"
+                                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                            >
+                            <i class='bx bx-package product-fallback-icon' style="display: none;"></i>
                         {% else %}
                             <i class='bx bx-package'></i>
                         {% endif %}
@@ -157,9 +162,9 @@
                     {% if producto.stock <= 0 %}
                         <span class="stock-status stock-empty">Sin stock</span>
                     {% elif producto.stock <= stock_minimo_alerta %}
-                        <span class="stock-status stock-low">{{ producto.stock }}</span>
+                        <span class="stock-status stock-low">{{ producto.stock|formato_numero }}</span>
                     {% else %}
-                        <span class="stock-status stock-ok">{{ producto.stock }}</span>
+                        <span class="stock-status stock-ok">{{ producto.stock|formato_numero }}</span>
                     {% endif %}
 
                     <a href="{% url 'actualizar_stock' producto.id %}" class="action-btn stock-btn" title="Ajustar stock">
@@ -174,6 +179,164 @@
                 <span>No hay productos agotados ni con stock bajo.</span>
             </article>
             {% endfor %}
+        </section>
+    </article>
+</section>
+
+<section class="content-grid inventory-movements-grid">
+    <article class="panel-card inventory-movement-summary">
+        <header class="panel-header">
+            <section>
+                <h2>Resumen de movimientos</h2>
+                <p>Entradas, salidas y correcciones registradas</p>
+            </section>
+
+            <span class="badge-custom">Movimientos</span>
+        </header>
+
+        <section class="movement-summary-list">
+            <article>
+                <i class='bx bx-transfer'></i>
+                <section>
+                    <strong>{{ total_movimientos|default:"0"|formato_numero }}</strong>
+                    <span>Total movimientos</span>
+                </section>
+            </article>
+
+            <article>
+                <i class='bx bx-plus-circle'></i>
+                <section>
+                    <strong>{{ total_entradas|default:"0"|formato_numero }}</strong>
+                    <span>Entradas</span>
+                </section>
+            </article>
+
+            <article>
+                <i class='bx bx-minus-circle'></i>
+                <section>
+                    <strong>{{ total_salidas|default:"0"|formato_numero }}</strong>
+                    <span>Salidas</span>
+                </section>
+            </article>
+
+            <article>
+                <i class='bx bx-edit-alt'></i>
+                <section>
+                    <strong>{{ total_correcciones|default:"0"|formato_numero }}</strong>
+                    <span>Correcciones</span>
+                </section>
+            </article>
+        </section>
+    </article>
+
+    <article class="panel-card inventory-movements-panel">
+        <header class="panel-header">
+            <section>
+                <h2>Movimientos recientes</h2>
+                <p>Historial de cambios hechos al inventario</p>
+            </section>
+
+            <section class="inventory-panel-actions">
+                <span class="badge-custom">Últimos 50</span>
+
+                <a href="{% url 'historial_inventario' %}" class="inventory-history-link">
+                    <i class='bx bx-history'></i>
+                    Ver historial completo
+                </a>
+            </section>
+        </header>
+
+        <section class="table-responsive inventory-movements-wrapper">
+            <table class="products-table inventory-movements-table">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Tipo</th>
+                        <th>Cantidad</th>
+                        <th>Stock anterior</th>
+                        <th>Stock nuevo</th>
+                        <th>Motivo</th>
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for movimiento in movimientos_recientes %}
+                    <tr>
+                        <td>
+                            <section class="product-info">
+                                <span class="product-image-box">
+                                    {% if movimiento.producto.imagen_final_url %}
+                                        <img
+                                            src="{{ movimiento.producto.imagen_final_url }}"
+                                            alt="{{ movimiento.producto.nombre }}"
+                                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                        >
+                                        <i class='bx bx-package product-fallback-icon' style="display: none;"></i>
+                                    {% else %}
+                                        <i class='bx bx-package'></i>
+                                    {% endif %}
+                                </span>
+
+                                <section class="product-text">
+                                    <strong>{{ movimiento.producto.nombre }}</strong>
+                                    <small>
+                                        {% if movimiento.producto.categoria %}
+                                            {{ movimiento.producto.categoria.nombre }}
+                                        {% else %}
+                                            Sin categoría
+                                        {% endif %}
+                                    </small>
+                                </section>
+                            </section>
+                        </td>
+
+                        <td>
+                            {% if movimiento.tipo == 'entrada' %}
+                                <span class="movement-badge movement-entry">
+                                    <i class='bx bx-plus-circle'></i>
+                                    Entrada
+                                </span>
+                            {% elif movimiento.tipo == 'salida' %}
+                                <span class="movement-badge movement-exit">
+                                    <i class='bx bx-minus-circle'></i>
+                                    Salida
+                                </span>
+                            {% else %}
+                                <span class="movement-badge movement-fix">
+                                    <i class='bx bx-edit-alt'></i>
+                                    Corrección
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td>{{ movimiento.cantidad|formato_numero }}</td>
+                        <td>{{ movimiento.stock_anterior|formato_numero }}</td>
+                        <td>{{ movimiento.stock_nuevo|formato_numero }}</td>
+
+                        <td>
+                            {% if movimiento.motivo %}
+                                {{ movimiento.get_motivo_display }}
+                            {% else %}
+                                Sin motivo
+                            {% endif %}
+
+                            {% if movimiento.observacion %}
+                                <small class="movement-note">{{ movimiento.observacion }}</small>
+                            {% endif %}
+                        </td>
+
+                        <td>{{ movimiento.fecha|date:"d/m/Y h:i A" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="empty-row">
+                            Todavía no hay movimientos registrados.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </section>
     </article>
 </section>
@@ -230,7 +393,6 @@
 </section>
 
 <section class="content-grid products-content-grid">
-
     <article class="panel-card products-panel-full">
         <header class="panel-header">
             <section>
@@ -261,8 +423,13 @@
                         <td>
                             <section class="product-info">
                                 <span class="product-image-box">
-                                    {% if producto.imagen %}
-                                        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+                                    {% if producto.imagen_final_url %}
+                                        <img
+                                            src="{{ producto.imagen_final_url }}"
+                                            alt="{{ producto.nombre }}"
+                                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                        >
+                                        <i class='bx bx-package product-fallback-icon' style="display: none;"></i>
                                     {% else %}
                                         <i class='bx bx-package'></i>
                                     {% endif %}
@@ -313,11 +480,11 @@
                                 </span>
                             {% elif producto.stock <= stock_minimo_alerta %}
                                 <span class="stock-status stock-low">
-                                    {{ producto.stock }}
+                                    {{ producto.stock|formato_numero }}
                                 </span>
                             {% else %}
                                 <span class="stock-status stock-ok">
-                                    {{ producto.stock }}
+                                    {{ producto.stock|formato_numero }}
                                 </span>
                             {% endif %}
                         </td>
@@ -341,7 +508,6 @@
             </table>
         </section>
     </article>
-
 </section>
 
 {% endblock %}

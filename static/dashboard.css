@@ -888,3 +888,55 @@ body.dark-mode .stock-low {
     font-size: 12px;
     margin-top: 4px;
 }
+
+.content-grid {
+    align-items: start;
+}
+
+.products-panel,
+.sales-panel {
+    align-self: start;
+}
+
+.products-panel .table-responsive {
+    max-height: 360px;
+    overflow: auto;
+    border-radius: 16px;
+}
+
+.products-panel .top-products-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--card);
+}
+
+.sales-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.sales-panel .sales-list {
+    max-height: 430px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.sale-item {
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.sale-item section {
+    min-width: 0;
+}
+
+.sale-item p {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.sale-item strong,
+.sale-item small {
+    overflow-wrap: anywhere;
+}

@@ -5,17 +5,19 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Q, Sum
+from django.db.models import Count, Max, Q, Sum
 from django.http import HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.dateparse import parse_date
-import pandas as pd
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 
-from backend.permissions import GRUPO_ADMINISTRADOR, es_administrador, rol_usuario
+from backend.permissions import GRUPO_ADMINISTRADOR, admin_required, es_administrador, rol_usuario
 from productos.models import Producto
-from .models import Venta
+from .models import Cliente, Venta
 
 
 def rango_dia(fecha):
@@ -64,7 +66,8 @@ def ventas_permitidas(usuario, es_admin):
     ventas = Venta.objects.select_related(
         'producto',
         'producto__categoria',
-        'vendedor'
+        'vendedor',
+        'cliente'
     )
 
     if not es_admin:
@@ -86,7 +89,10 @@ def aplicar_filtros_ventas(request, ventas, es_admin):
             Q(producto__talla__icontains=query) |
             Q(vendedor__username__icontains=query) |
             Q(vendedor__first_name__icontains=query) |
-            Q(vendedor__last_name__icontains=query)
+            Q(vendedor__last_name__icontains=query) |
+            Q(cliente__documento__icontains=query) |
+            Q(cliente__nombre__icontains=query) |
+            Q(cliente__correo__icontains=query)
         )
 
     if fecha:
@@ -106,6 +112,55 @@ def aplicar_filtros_ventas(request, ventas, es_admin):
     return ventas, query, fecha, vendedor_id
 
 
+def obtener_cliente_venta(request):
+    cliente_modo = request.POST.get('cliente_modo', 'rapida').strip()
+    cliente_id = request.POST.get('cliente_id', '').strip()
+    documento_cliente = request.POST.get('documento_cliente', '').strip()
+    nombre_cliente = request.POST.get('nombre_cliente', '').strip()
+    correo_cliente = request.POST.get('correo_cliente', '').strip()
+    telefono_cliente = request.POST.get('telefono_cliente', '').strip()
+
+    if cliente_modo == 'rapida':
+        return None
+
+    if cliente_modo == 'existente':
+        if not cliente_id:
+            raise ValidationError('Debes seleccionar un cliente existente.')
+
+        cliente = Cliente.objects.filter(id=cliente_id).first()
+
+        if cliente is None:
+            raise ValidationError('El cliente seleccionado no existe.')
+
+        return cliente
+
+    if cliente_modo == 'nuevo':
+        if not documento_cliente:
+            raise ValidationError('Debes ingresar el documento del cliente.')
+
+        if not nombre_cliente:
+            raise ValidationError('Debes ingresar el nombre del cliente.')
+
+        cliente, creado = Cliente.objects.get_or_create(
+            documento=documento_cliente,
+            defaults={
+                'nombre': nombre_cliente,
+                'correo': correo_cliente or None,
+                'telefono': telefono_cliente or None
+            }
+        )
+
+        if not creado:
+            cliente.nombre = nombre_cliente
+            cliente.correo = correo_cliente or None
+            cliente.telefono = telefono_cliente or None
+            cliente.save(update_fields=['nombre', 'correo', 'telefono'])
+
+        return cliente
+
+    raise ValidationError('La opción de cliente seleccionada no es válida.')
+
+
 @login_required(login_url='login')
 def nueva_venta(request):
     es_admin = es_administrador(request.user)
@@ -113,17 +168,31 @@ def nueva_venta(request):
     productos = Producto.objects.select_related('categoria').all().order_by('nombre')
     productos_disponibles = productos.filter(stock__gt=0)
     vendedores = vendedores_registrados()
+    clientes = Cliente.objects.all().order_by('nombre')
 
     error = None
     vendedor_id_seleccionado = ''
+    cliente_modo_seleccionado = 'rapida'
+    cliente_id_seleccionado = ''
+    documento_cliente = ''
+    nombre_cliente = ''
+    correo_cliente = ''
+    telefono_cliente = ''
 
     if request.method == 'POST':
         vendedor_id = request.POST.get('vendedor', '').strip()
         producto_ids = request.POST.getlist('producto')
         cantidades_raw = request.POST.getlist('cantidad')
+        cliente_modo_seleccionado = request.POST.get('cliente_modo', 'rapida').strip()
+        cliente_id_seleccionado = request.POST.get('cliente_id', '').strip()
+        documento_cliente = request.POST.get('documento_cliente', '').strip()
+        nombre_cliente = request.POST.get('nombre_cliente', '').strip()
+        correo_cliente = request.POST.get('correo_cliente', '').strip()
+        telefono_cliente = request.POST.get('telefono_cliente', '').strip()
 
         vendedor_id_seleccionado = vendedor_id
         vendedor = request.user
+        cliente = None
 
         if es_admin:
             if not vendedor_id:
@@ -133,6 +202,12 @@ def nueva_venta(request):
 
                 if vendedor is None:
                     error = 'El vendedor seleccionado no es válido.'
+
+        if not error:
+            try:
+                cliente = obtener_cliente_venta(request)
+            except ValidationError as e:
+                error = e.messages[0] if hasattr(e, 'messages') and e.messages else 'No se pudo validar el cliente.'
 
         productos_agrupados = {}
 
@@ -191,6 +266,7 @@ def nueva_venta(request):
                         Venta.objects.create(
                             producto=productos_map[producto_id],
                             vendedor=vendedor,
+                            cliente=cliente,
                             cantidad=cantidad
                         )
 
@@ -221,6 +297,7 @@ def nueva_venta(request):
         'productos': productos,
         'productos_disponibles': productos_disponibles,
         'vendedores_registrados': vendedores,
+        'clientes_registrados': clientes,
         'ventas_recientes': ventas_recientes,
         'error': error,
         'es_admin': es_admin,
@@ -230,6 +307,12 @@ def nueva_venta(request):
         'total_mes': total_mes,
         'unidades_vendidas': unidades_vendidas,
         'vendedor_id_seleccionado': vendedor_id_seleccionado,
+        'cliente_modo_seleccionado': cliente_modo_seleccionado,
+        'cliente_id_seleccionado': cliente_id_seleccionado,
+        'documento_cliente': documento_cliente,
+        'nombre_cliente': nombre_cliente,
+        'correo_cliente': correo_cliente,
+        'telefono_cliente': telefono_cliente,
     })
 
 
@@ -267,6 +350,126 @@ def historial_ventas(request):
 
 
 @login_required(login_url='login')
+@admin_required
+def clientes(request):
+    query = request.GET.get('q', '').strip()
+
+    clientes_lista = Cliente.objects.annotate(
+        cantidad_ventas=Count('ventas'),
+        total_comprado=Sum('ventas__total'),
+        ultima_compra=Max('ventas__fecha')
+    ).order_by('nombre')
+
+    if query:
+        clientes_lista = clientes_lista.filter(
+            Q(documento__icontains=query) |
+            Q(nombre__icontains=query) |
+            Q(correo__icontains=query) |
+            Q(telefono__icontains=query)
+        )
+
+    total_clientes = clientes_lista.count()
+    clientes_con_compras = clientes_lista.filter(cantidad_ventas__gt=0).count()
+    total_compras = clientes_lista.aggregate(total=Sum('ventas__total'))['total'] or 0
+
+    paginator = Paginator(clientes_lista, 15)
+    pagina = request.GET.get('page')
+    clientes_pagina = paginator.get_page(pagina)
+
+    return render(request, 'clientes.html', {
+        'clientes': clientes_pagina,
+        'query': query,
+        'total_clientes': total_clientes,
+        'clientes_con_compras': clientes_con_compras,
+        'total_compras': total_compras,
+        'es_admin': es_administrador(request.user),
+        'rol_usuario': rol_usuario(request.user),
+    })
+
+
+@login_required(login_url='login')
+@admin_required
+def detalle_cliente(request, cliente_id):
+    cliente = get_object_or_404(Cliente, id=cliente_id)
+
+    ventas_cliente = Venta.objects.select_related(
+        'producto',
+        'producto__categoria',
+        'vendedor',
+        'cliente'
+    ).filter(
+        cliente=cliente
+    ).order_by('-fecha')
+
+    total_comprado = ventas_cliente.aggregate(total=Sum('total'))['total'] or 0
+    cantidad_ventas = ventas_cliente.count()
+    unidades_compradas = ventas_cliente.aggregate(total=Sum('cantidad'))['total'] or 0
+    productos_diferentes = ventas_cliente.values('producto_id').distinct().count()
+
+    paginator = Paginator(ventas_cliente, 15)
+    pagina = request.GET.get('page')
+    ventas_pagina = paginator.get_page(pagina)
+
+    return render(request, 'detalle_cliente.html', {
+        'cliente': cliente,
+        'ventas': ventas_pagina,
+        'total_comprado': total_comprado,
+        'cantidad_ventas': cantidad_ventas,
+        'unidades_compradas': unidades_compradas,
+        'productos_diferentes': productos_diferentes,
+        'es_admin': es_administrador(request.user),
+        'rol_usuario': rol_usuario(request.user),
+    })
+
+@login_required(login_url='login')
+@admin_required
+def editar_cliente(request, cliente_id):
+    cliente = get_object_or_404(Cliente, id=cliente_id)
+
+    if request.method == 'POST':
+        documento = request.POST.get('documento', '').strip()
+        nombre = request.POST.get('nombre', '').strip()
+        correo = request.POST.get('correo', '').strip()
+        telefono = request.POST.get('telefono', '').strip()
+
+        if not documento or not nombre:
+            messages.error(request, 'Documento y nombre son obligatorios.')
+            return redirect('editar_cliente', cliente_id=cliente.id)
+
+        cliente.documento = documento
+        cliente.nombre = nombre
+        cliente.correo = correo or None
+        cliente.telefono = telefono or None
+        cliente.save(update_fields=['documento', 'nombre', 'correo', 'telefono'])
+
+        messages.success(request, 'Cliente actualizado correctamente.')
+        return redirect('clientes')
+
+    return render(request, 'editar_cliente.html', {
+        'cliente': cliente,
+        'es_admin': es_administrador(request.user),
+        'rol_usuario': rol_usuario(request.user),
+    })
+
+
+@login_required(login_url='login')
+@admin_required
+def cambiar_estado_cliente(request, cliente_id):
+    cliente = get_object_or_404(Cliente, id=cliente_id)
+
+    if request.method == 'POST':
+        cliente.activo = not cliente.activo
+        cliente.save(update_fields=['activo'])
+
+        if cliente.activo:
+            messages.success(request, 'Cliente activado correctamente.')
+        else:
+            messages.success(request, 'Cliente desactivado correctamente.')
+
+    return redirect('clientes')
+
+
+@login_required(login_url='login')
 def exportar_ventas(request):
     es_admin = es_administrador(request.user)
 
@@ -282,21 +485,26 @@ def exportar_ventas(request):
 
     nombre_archivo = 'historial_ventas.xlsx' if es_admin else 'mis_ventas.xlsx'
 
-    data = []
+    total_filtrado = ventas.aggregate(total=Sum('total'))['total'] or 0
+    unidades_filtradas = ventas.aggregate(total=Sum('cantidad'))['total'] or 0
+    cantidad_ventas = ventas.count()
 
-    for venta in ventas:
-        data.append({
-            'Fecha': timezone.localtime(venta.fecha).strftime('%d/%m/%Y %I:%M %p'),
-            'Producto': venta.producto.nombre,
-            'Categoria': venta.producto.categoria.nombre if venta.producto.categoria else 'Sin categoria',
-            'Color': venta.producto.color,
-            'Talla': venta.producto.talla,
-            'Cantidad': venta.cantidad,
-            'Total': venta.total,
-            'Vendedor': venta.vendedor.username if venta.vendedor else '',
-        })
+    nombre_vendedor = 'Todos'
 
-    df = pd.DataFrame(data, columns=[
+    if es_admin and vendedor_id:
+        vendedor = User.objects.filter(id=vendedor_id).first()
+
+        if vendedor:
+            nombre_vendedor = vendedor.get_full_name() or vendedor.username
+
+    if not es_admin:
+        nombre_vendedor = request.user.get_full_name() or request.user.username
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Historial ventas'
+
+    encabezados = [
         'Fecha',
         'Producto',
         'Categoria',
@@ -305,14 +513,123 @@ def exportar_ventas(request):
         'Cantidad',
         'Total',
         'Vendedor',
+        'Documento cliente',
+        'Cliente',
+        'Correo cliente'
+    ]
+
+    ws.append(['Historial de ventas'])
+    ws.append([
+        f"Busqueda: {query or 'Todos'}",
+        f"Fecha: {fecha or 'Todas'}",
+        f"Vendedor: {nombre_vendedor}",
+        f"Ventas: {cantidad_ventas}",
+        f"Unidades: {unidades_filtradas}",
+        f"Total: ${int(total_filtrado):,}".replace(',', '.')
     ])
+    ws.append([])
+    ws.append(encabezados)
+
+    for venta in ventas:
+        ws.append([
+            timezone.localtime(venta.fecha).strftime('%d/%m/%Y %I:%M %p'),
+            venta.producto.nombre,
+            venta.producto.categoria.nombre if venta.producto.categoria else 'Sin categoria',
+            venta.producto.color,
+            venta.producto.talla,
+            venta.cantidad,
+            float(venta.total or 0),
+            venta.vendedor.username if venta.vendedor else '',
+            venta.cliente.documento if venta.cliente else '',
+            venta.cliente.nombre if venta.cliente else 'Sin cliente',
+            venta.cliente.correo if venta.cliente and venta.cliente.correo else '',
+        ])
+
+    titulo_fill = PatternFill('solid', fgColor='D41473')
+    encabezado_fill = PatternFill('solid', fgColor='FCE7F3')
+    resumen_fill = PatternFill('solid', fgColor='FFF1F8')
+    borde_color = Side(style='thin', color='E5E7EB')
+
+    titulo_font = Font(color='FFFFFF', bold=True, size=15)
+    encabezado_font = Font(color='111827', bold=True)
+    resumen_font = Font(color='4B5563', bold=True)
+    texto_font = Font(color='111827')
+
+    center = Alignment(horizontal='center', vertical='center')
+    left = Alignment(horizontal='left', vertical='center')
+
+    ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=11)
+    ws['A1'].fill = titulo_fill
+    ws['A1'].font = titulo_font
+    ws['A1'].alignment = center
+    ws.row_dimensions[1].height = 28
+
+    for cell in ws[2]:
+        cell.fill = resumen_fill
+        cell.font = resumen_font
+        cell.alignment = left
+        cell.border = Border(
+            left=borde_color,
+            right=borde_color,
+            top=borde_color,
+            bottom=borde_color
+        )
+
+    for cell in ws[4]:
+        cell.fill = encabezado_fill
+        cell.font = encabezado_font
+        cell.alignment = center
+        cell.border = Border(
+            left=borde_color,
+            right=borde_color,
+            top=borde_color,
+            bottom=borde_color
+        )
+
+    for row in ws.iter_rows(min_row=5):
+        for cell in row:
+            cell.font = texto_font
+            cell.alignment = left
+            cell.border = Border(
+                left=borde_color,
+                right=borde_color,
+                top=borde_color,
+                bottom=borde_color
+            )
+
+    for row in ws.iter_rows(min_row=5, min_col=6, max_col=7):
+        for cell in row:
+            cell.alignment = center
+
+    for cell in ws['G'][4:]:
+        cell.number_format = '"$"#,##0'
+
+    anchos = {
+        'A': 23,
+        'B': 28,
+        'C': 22,
+        'D': 16,
+        'E': 12,
+        'F': 12,
+        'G': 16,
+        'H': 22,
+        'I': 20,
+        'J': 28,
+        'K': 30,
+    }
+
+    for columna, ancho in anchos.items():
+        ws.column_dimensions[columna].width = ancho
+
+    ws.freeze_panes = 'A5'
+    ws.auto_filter.ref = f'A4:K{ws.max_row}'
 
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
 
-    response['Content-Disposition'] = f'attachment; filename={nombre_archivo}'
+    response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}"'
 
-    df.to_excel(response, index=False)
+    wb.save(response)
 
     return response

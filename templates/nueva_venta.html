@@ -8,7 +8,7 @@
 {% block estilos %}
 <link rel="stylesheet" href="{% static 'usuarios.css' %}">
 <link rel="stylesheet" href="{% static 'productos.css' %}">
-<link rel="stylesheet" href="{% static 'ventas.css' %}?v=ventas-multiples-1">
+<link rel="stylesheet" href="{% static 'ventas.css' %}?v=clientes-layout-2">
 {% endblock %}
 
 {% block topbar_info %}
@@ -18,7 +18,7 @@
 
 <section>
     <strong>Gestión de ventas</strong>
-    <span>Registra ventas, controla stock y consulta movimientos recientes</span>
+    <span>Registra ventas, clientes y controla stock</span>
 </section>
 {% endblock %}
 
@@ -43,9 +43,10 @@
         <section class="stat-icon">
             <i class='bx bx-money-withdraw'></i>
         </section>
+
         <section>
             <span>Total ventas</span>
-            <h3>${{ total_ventas|formato_pesos }}</h3>
+            <h3>{{ total_ventas|formato_pesos }}</h3>
             <p>Acumulado</p>
         </section>
     </article>
@@ -54,9 +55,10 @@
         <section class="stat-icon">
             <i class='bx bx-calendar-check'></i>
         </section>
+
         <section>
             <span>Ventas de hoy</span>
-            <h3>${{ total_hoy|formato_pesos }}</h3>
+            <h3>{{ total_hoy|formato_pesos }}</h3>
             <p>Registrado hoy</p>
         </section>
     </article>
@@ -65,9 +67,10 @@
         <section class="stat-icon">
             <i class='bx bx-line-chart'></i>
         </section>
+
         <section>
             <span>Este mes</span>
-            <h3>${{ total_mes|formato_pesos }}</h3>
+            <h3>{{ total_mes|formato_pesos }}</h3>
             <p>Ventas mensuales</p>
         </section>
     </article>
@@ -76,6 +79,7 @@
         <section class="stat-icon warning">
             <i class='bx bx-shopping-bag'></i>
         </section>
+
         <section>
             <span>Unidades</span>
             <h3>{{ unidades_vendidas|formato_numero }}</h3>
@@ -84,13 +88,12 @@
     </article>
 </section>
 
-<section class="sales-layout-grid">
-
-    <article class="panel-card sale-form-panel">
+<section class="sales-layout-grid sales-layout-single">
+    <article class="panel-card sale-form-panel sale-form-panel-full">
         <header class="panel-header">
             <section>
                 <h2>Nueva venta</h2>
-                <p>Selecciona un vendedor y agrega uno o varios productos a la venta.</p>
+                <p>Selecciona cliente, vendedor y agrega uno o varios productos.</p>
             </section>
 
             <span class="badge-custom">Registro</span>
@@ -132,6 +135,122 @@
                 </section>
             </section>
             {% endif %}
+
+            <section class="vp-client-card">
+                <header class="vp-client-header">
+                    <section>
+                        <h3>Cliente de la venta</h3>
+                        <p>Elige si la venta será sin cliente, con cliente existente o con un cliente nuevo.</p>
+                    </section>
+
+                    <span class="badge-custom">Cliente</span>
+                </header>
+
+                <section class="vp-client-options">
+                    <label class="vp-client-option">
+                        <input type="radio" name="cliente_modo" value="rapida" {% if cliente_modo_seleccionado == 'rapida' %}checked{% endif %}>
+                        <span>
+                            <i class='bx bx-user-x'></i>
+                            Sin cliente
+                        </span>
+                    </label>
+
+                    <label class="vp-client-option">
+                        <input type="radio" name="cliente_modo" value="existente" {% if cliente_modo_seleccionado == 'existente' %}checked{% endif %}>
+                        <span>
+                            <i class='bx bx-user-check'></i>
+                            Cliente existente
+                        </span>
+                    </label>
+
+                    <label class="vp-client-option">
+                        <input type="radio" name="cliente_modo" value="nuevo" {% if cliente_modo_seleccionado == 'nuevo' %}checked{% endif %}>
+                        <span>
+                            <i class='bx bx-user-plus'></i>
+                            Nuevo cliente
+                        </span>
+                    </label>
+                </section>
+
+                <section class="vp-client-existing" id="clienteExistenteBox">
+                    <section class="vp-client-search-grid">
+                        <section class="vp-field">
+                            <label for="clienteSearch">Buscar cliente</label>
+
+                            <section class="vp-control">
+                                <i class='bx bx-search'></i>
+                                <input type="text" id="clienteSearch" placeholder="Buscar por nombre o documento">
+                            </section>
+                        </section>
+
+                        <section class="vp-field">
+                            <label for="cliente_id">Seleccionar cliente</label>
+
+                            <section class="vp-control">
+                                <i class='bx bx-id-card'></i>
+
+                                <select name="cliente_id" id="cliente_id">
+                                    <option value="">Selecciona un cliente</option>
+
+                                    {% for cliente in clientes_registrados %}
+                                        {% with cliente_id_text=cliente.id|stringformat:"s" %}
+                                        <option
+                                            value="{{ cliente.id }}"
+                                            data-search="{{ cliente.nombre }} {{ cliente.documento }} {{ cliente.correo|default:'' }}"
+                                            {% if cliente_id_seleccionado == cliente_id_text %}selected{% endif %}
+                                        >
+                                            {{ cliente.nombre }} · {{ cliente.documento }}
+                                        </option>
+                                        {% endwith %}
+                                    {% empty %}
+                                        <option value="" disabled>No hay clientes registrados</option>
+                                    {% endfor %}
+                                </select>
+                            </section>
+                        </section>
+                    </section>
+                </section>
+
+                <section class="vp-client-new" id="clienteNuevoBox">
+                    <section class="vp-client-grid">
+                        <section class="vp-field">
+                            <label for="documento_cliente">Documento</label>
+
+                            <section class="vp-control">
+                                <i class='bx bx-id-card'></i>
+                                <input type="text" name="documento_cliente" id="documento_cliente" value="{{ documento_cliente }}" placeholder="Ej: 1002456789">
+                            </section>
+                        </section>
+
+                        <section class="vp-field">
+                            <label for="nombre_cliente">Nombre completo</label>
+
+                            <section class="vp-control">
+                                <i class='bx bx-user'></i>
+                                <input type="text" name="nombre_cliente" id="nombre_cliente" value="{{ nombre_cliente }}" placeholder="Nombre del cliente">
+                            </section>
+                        </section>
+
+                        <section class="vp-field">
+                            <label for="correo_cliente">Correo</label>
+
+                            <section class="vp-control">
+                                <i class='bx bx-envelope'></i>
+                                <input type="email" name="correo_cliente" id="correo_cliente" value="{{ correo_cliente }}" placeholder="cliente@email.com">
+                            </section>
+                        </section>
+
+                        <section class="vp-field">
+                            <label for="telefono_cliente">Teléfono</label>
+
+                            <section class="vp-control">
+                                <i class='bx bx-phone'></i>
+                                <input type="text" name="telefono_cliente" id="telefono_cliente" value="{{ telefono_cliente }}" placeholder="Opcional">
+                            </section>
+                        </section>
+                    </section>
+                </section>
+            </section>
 
             <section class="vp-products-card">
                 <header class="vp-products-header">
@@ -203,7 +322,9 @@
             {% endif %}
         </form>
     </article>
+</section>
 
+<section class="sales-bottom-grid">
     <article class="panel-card recent-sales-panel">
         <header class="panel-header">
             <section>
@@ -225,12 +346,18 @@
                     <strong>{{ venta.producto.nombre }}</strong>
                     <span>{{ venta.cantidad|formato_numero }} unidad(es) · {{ venta.fecha|date:"d/m/Y h:i A" }}</span>
 
+                    {% if venta.cliente %}
+                    <small>Cliente: {{ venta.cliente.nombre }}</small>
+                    {% else %}
+                    <small>Cliente: sin cliente</small>
+                    {% endif %}
+
                     {% if es_admin %}
                     <small>Vendedor: {{ venta.vendedor.username }}</small>
                     {% endif %}
                 </section>
 
-                <p>${{ venta.total|formato_pesos }}</p>
+                <p>{{ venta.total|formato_pesos }}</p>
             </article>
             {% empty %}
             <article class="sales-empty-state compact">
@@ -242,27 +369,26 @@
         </section>
     </article>
 
-</section>
+    <article class="panel-card history-cta-panel">
+        <section class="history-cta-icon">
+            <i class='bx bx-time-five'></i>
+        </section>
 
-<section class="panel-card history-cta-panel">
-    <section class="history-cta-icon">
-        <i class='bx bx-time-five'></i>
-    </section>
+        <section class="history-cta-text">
+            <h2>¿Quieres revisar el historial completo?</h2>
+            <p>Consulta todas las ventas registradas, filtra por fecha, producto, cliente o vendedor y exporta el reporte.</p>
+        </section>
 
-    <section class="history-cta-text">
-        <h2>¿Quieres revisar el historial completo?</h2>
-        <p>Consulta todas las ventas registradas, filtra por fecha, producto o vendedor y exporta el reporte.</p>
-    </section>
-
-    <a href="{% url 'historial_ventas' %}" class="btn-primary history-cta-button">
-        <i class='bx bx-right-arrow-alt'></i>
-        Ir al historial de ventas
-    </a>
+        <a href="{% url 'historial_ventas' %}" class="btn-primary history-cta-button">
+            <i class='bx bx-right-arrow-alt'></i>
+            Ir al historial de ventas
+        </a>
+    </article>
 </section>
 
 {% endblock %}
 
 {% block scripts %}
 <script src="{% static 'dashboard.js' %}"></script>
-<script src="{% static 'ventas.js' %}?v=ventas-multiples-1"></script>
+<script src="{% static 'ventas.js' %}?v=clientes-layout-2"></script>
 {% endblock %}

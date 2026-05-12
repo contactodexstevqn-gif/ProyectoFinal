@@ -81,21 +81,45 @@
     </section>
 
     <section class="mb-3 mt-3">
-        <label class="form-label" for="{{ form.imagen.id_for_label }}">Imagen</label>
+        <label class="form-label">Imagen</label>
 
-        <section class="input-icon">
-            <i class='bx bx-image'></i>
-            {{ form.imagen }}
+        <section class="image-source-grid">
+            <section>
+                <label class="form-label" for="{{ form.imagen.id_for_label }}">Subir archivo</label>
+                <section class="input-icon">
+                    <i class='bx bx-image-add'></i>
+                    {{ form.imagen }}
+                </section>
+                {{ form.imagen.errors }}
+            </section>
+
+            <section>
+                <label class="form-label" for="{{ form.imagen_url.id_for_label }}">URL de internet</label>
+                <section class="input-icon">
+                    <i class='bx bx-link-alt'></i>
+                    {{ form.imagen_url }}
+                </section>
+                {{ form.imagen_url.errors }}
+            </section>
         </section>
-        {{ form.imagen.errors }}
+
+        <p class="image-help-text">
+            Puedes subir una imagen desde tu equipo o pegar una URL. Si usas URL, esa imagen tendrá prioridad.
+        </p>
 
         <section class="image-preview-box" id="imagePreviewBox">
-            {% if producto.imagen %}
-                <img id="imagePreview" src="{{ producto.imagen.url }}" alt="Vista previa de {{ producto.nombre }}">
-                <p id="imagePreviewText" style="display: none;">Vista previa de la imagen seleccionada</p>
+            {% if producto.imagen_final_url %}
+                <img id="imagePreview" src="{{ producto.imagen_final_url }}" alt="Vista previa de {{ producto.nombre }}">
+                <section class="image-preview-empty-icon" id="imagePreviewIcon" style="display: none;">
+                    <i class='bx bx-package'></i>
+                </section>
+                <p id="imagePreviewText" style="display: none;">Sin imagen. El producto se mostrará con icono.</p>
             {% else %}
                 <img id="imagePreview" src="" alt="Vista previa de la imagen seleccionada">
-                <p id="imagePreviewText">Vista previa de la imagen seleccionada</p>
+                <section class="image-preview-empty-icon" id="imagePreviewIcon">
+                    <i class='bx bx-package'></i>
+                </section>
+                <p id="imagePreviewText">Sin imagen. El producto se mostrará con icono.</p>
             {% endif %}
         </section>
     </section>

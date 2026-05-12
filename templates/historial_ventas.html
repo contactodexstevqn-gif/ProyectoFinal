@@ -2,7 +2,7 @@
 {% load static %}
 {% load formatos %}
 
-{% block titulo %}Historial de ventas | {{ configuracion_tienda.nombre_tienda|default:'Fucsia Boutique' }}{% endblock %}
+{% block titulo %}Historial | {{ configuracion_tienda.nombre_tienda|default:'Fucsia Boutique' }}{% endblock %}
 
 {% block estilos %}
 <link rel="stylesheet" href="{% static 'usuarios.css' %}">
@@ -16,8 +16,8 @@
 </section>
 
 <section>
-    <strong>Historial de ventas</strong>
-    <span>Consulta, filtra y exporta los movimientos de ventas</span>
+    <strong>Historial</strong>
+    <span>Consulta ventas y movimientos de inventario</span>
 </section>
 {% endblock %}
 
@@ -26,7 +26,7 @@
 <section class="page-header">
     <header>
         <p>Historial</p>
-        <h1>{% if es_admin %}Historial de ventas{% else %}Mis ventas registradas{% endif %}</h1>
+        <h1>{% if es_admin %}Historial general{% else %}Mis ventas registradas{% endif %}</h1>
     </header>
 
     <nav class="header-actions history-actions">
@@ -40,6 +40,18 @@
             Exportar Excel
         </a>
     </nav>
+</section>
+
+<section class="history-tabs">
+    <a href="{% url 'historial_ventas' %}" class="history-tab active">
+        <i class='bx bx-receipt'></i>
+        Ventas
+    </a>
+
+    <a href="{% url 'historial_inventario' %}" class="history-tab">
+        <i class='bx bx-transfer'></i>
+        Inventario
+    </a>
 </section>
 
 <section class="stats-grid history-summary-grid">
@@ -62,7 +74,7 @@
 
         <section>
             <span>Total filtrado</span>
-            <h3>${{ total_filtrado|formato_pesos }}</h3>
+            <h3>{{ total_filtrado|formato_pesos }}</h3>
             <p>Valor vendido</p>
         </section>
     </article>
@@ -140,7 +152,7 @@
                 <p>Consulta producto, categoría, cantidad, total, vendedor y fecha.</p>
             </section>
 
-            <span class="badge-custom">Historial</span>
+            <span class="badge-custom">Ventas</span>
         </header>
 
         <section class="table-responsive products-table-wrapper">
@@ -151,7 +163,9 @@
                         <th>Categoría</th>
                         <th>Cantidad</th>
                         <th>Total</th>
-                        {% if es_admin %}<th>Vendedor</th>{% endif %}
+                        {% if es_admin %}
+                        <th>Vendedor</th>
+                        {% endif %}
                         <th>Fecha</th>
                     </tr>
                 </thead>
@@ -162,10 +176,15 @@
                         <td>
                             <section class="product-info">
                                 <span class="product-image-box">
-                                    {% if venta.producto.imagen %}
-                                        <img src="{{ venta.producto.imagen.url }}" alt="{{ venta.producto.nombre }}">
+                                    {% if venta.producto.imagen_final_url %}
+                                    <img
+                                        src="{{ venta.producto.imagen_final_url }}"
+                                        alt="{{ venta.producto.nombre }}"
+                                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                    >
+                                    <i class='bx bx-package product-fallback-icon' style="display: none;"></i>
                                     {% else %}
-                                        <i class='bx bx-package'></i>
+                                    <i class='bx bx-package'></i>
                                     {% endif %}
                                 </span>
 
@@ -188,7 +207,7 @@
                             <span class="sold-badge">{{ venta.cantidad|formato_numero }}</span>
                         </td>
 
-                        <td class="price-cell">${{ venta.total|formato_pesos }}</td>
+                        <td class="price-cell">{{ venta.total|formato_pesos }}</td>
 
                         {% if es_admin %}
                         <td>{{ venta.vendedor.username }}</td>

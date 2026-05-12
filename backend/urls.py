@@ -13,10 +13,9 @@ urlpatterns = [
     path('productos/', include('productos.urls')),
     path('configuracion/', include('configuracion.urls')),
     path('', include('usuarios.urls')),
-    path('venta/', ventas_views.nueva_venta, name='nueva_venta'),
-    path('historial-ventas/', ventas_views.historial_ventas, name='historial_ventas'),
-    path('exportar-ventas/', ventas_views.exportar_ventas, name='exportar_ventas'),
+    path('venta/', include('ventas.urls')),
     path('catalogo/', catalogo_publico, name='catalogo_publico'),
+    path('reportes/', include('reportes.urls')),
 ]
 
 if settings.DEBUG:

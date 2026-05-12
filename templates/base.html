@@ -110,17 +110,19 @@
                 </a>
 
                 {% if es_admin or request.user.is_superuser %}
-                <a href="#" class="menu-link">
+                <a href="{% url 'clientes' %}" class="menu-link {% if request.resolver_match.url_name == 'clientes' or request.resolver_match.url_name == 'detalle_cliente' %}active{% endif %}">
                     <i class='bx bx-group'></i>
                     <span>Clientes</span>
                 </a>
+                {% endif %}
 
-                <a href="{% url 'historial_ventas' %}" class="menu-link {% if request.resolver_match.url_name == 'historial_ventas' %}active{% endif %}">
+                <a href="{% url 'historial_ventas' %}" class="menu-link {% if request.resolver_match.url_name == 'historial_ventas' or request.resolver_match.url_name == 'historial_inventario' %}active{% endif %}">
                     <i class='bx bx-time-five'></i>
                     <span>Historial</span>
                 </a>
 
-                <a href="{% url 'exportar_ventas' %}" class="menu-link">
+                {% if es_admin or request.user.is_superuser %}
+                <a href="{% url 'reportes' %}" class="menu-link {% if request.resolver_match.url_name == 'reportes' %}active{% endif %}">
                     <i class='bx bx-line-chart'></i>
                     <span>Reportes</span>
                 </a>
@@ -135,11 +137,6 @@
                 <a href="{% url 'configuracion_sistema' %}" class="menu-link {% if request.resolver_match.url_name == 'configuracion_sistema' %}active{% endif %}">
                     <i class='bx bx-cog'></i>
                     <span>Configuracion</span>
-                </a>
-                {% else %}
-                <a href="{% url 'exportar_ventas' %}" class="menu-link">
-                    <i class='bx bx-line-chart'></i>
-                    <span>Mi reporte</span>
                 </a>
                 {% endif %}
 

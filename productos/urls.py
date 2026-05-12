@@ -10,4 +10,6 @@ urlpatterns = [
     path('stock/<int:producto_id>/', views.actualizar_stock, name='actualizar_stock'),
     path('eliminar/<int:producto_id>/', views.eliminar_producto, name='eliminar_producto'),
     path('inventario/', views.inventario, name='inventario'),
+    path('historial-inventario/', views.historial_inventario, name='historial_inventario'),
+    path('historial-inventario/exportar-excel/', views.exportar_historial_inventario_excel, name='exportar_historial_inventario_excel'),
 ]

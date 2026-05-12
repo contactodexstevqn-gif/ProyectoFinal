@@ -5,6 +5,21 @@ from django.db import models, transaction
 from productos.models import MovimientoInventario, Producto
 
 
+class Cliente(models.Model):
+    documento = models.CharField(max_length=30, unique=True)
+    nombre = models.CharField(max_length=120)
+    correo = models.EmailField(max_length=150, blank=True, null=True)
+    telefono = models.CharField(max_length=30, blank=True, null=True)
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+    activo = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['nombre']
+
+    def __str__(self):
+        return f'{self.nombre} - {self.documento}'
+
+
 class Venta(models.Model):
     producto = models.ForeignKey(
         Producto,
@@ -12,6 +27,13 @@ class Venta(models.Model):
         related_name='ventas'
     )
     vendedor = models.ForeignKey(User, on_delete=models.CASCADE)
+    cliente = models.ForeignKey(
+        Cliente,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='ventas'
+    )
     cantidad = models.PositiveIntegerField()
     total = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     fecha = models.DateTimeField(auto_now_add=True)
@@ -42,6 +64,11 @@ class Venta(models.Model):
 
             super().save(*args, **kwargs)
 
+            observacion = f'Venta registrada #{self.pk}'
+
+            if self.cliente:
+                observacion = f'Venta registrada #{self.pk} para {self.cliente.nombre}.'
+
             MovimientoInventario.objects.create(
                 producto=producto,
                 tipo='salida',
@@ -49,7 +76,7 @@ class Venta(models.Model):
                 cantidad=self.cantidad,
                 stock_anterior=stock_anterior,
                 stock_nuevo=stock_nuevo,
-                observacion=f'Venta registrada #{self.pk}'
+                observacion=observacion
             )
 
     def __str__(self):

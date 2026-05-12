@@ -62,47 +62,91 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const imagenInput = document.querySelector('input[name="imagen"]');
+    const imagenUrlInput = document.querySelector('input[name="imagen_url"]');
     const imagePreview = document.getElementById('imagePreview');
     const imagePreviewBox = document.getElementById('imagePreviewBox');
     const imagePreviewText = document.getElementById('imagePreviewText');
+    const imagePreviewIcon = document.getElementById('imagePreviewIcon');
+
     let objectUrlActual = null;
     const imagenInicial = imagePreview ? imagePreview.getAttribute('src') : '';
 
-    function mostrarVistaPrevia() {
-        if (!imagenInput || !imagePreview || !imagePreviewBox || !imagePreviewText) {
-            return;
-        }
-
-        const archivo = imagenInput.files && imagenInput.files[0];
-
+    function limpiarObjectUrl() {
         if (objectUrlActual) {
             URL.revokeObjectURL(objectUrlActual);
             objectUrlActual = null;
         }
+    }
+
+    function pintarConImagen(src) {
+        if (!imagePreview || !imagePreviewBox || !imagePreviewText || !imagePreviewIcon) {
+            return;
+        }
+
+        imagePreview.src = src;
+        imagePreview.style.display = 'block';
+        imagePreviewText.style.display = 'none';
+        imagePreviewIcon.style.display = 'none';
+        imagePreviewBox.classList.add('has-image');
+    }
+
+    function pintarSinImagen() {
+        if (!imagePreview || !imagePreviewBox || !imagePreviewText || !imagePreviewIcon) {
+            return;
+        }
+
+        imagePreview.removeAttribute('src');
+        imagePreview.style.display = 'none';
+        imagePreviewText.style.display = 'block';
+        imagePreviewIcon.style.display = 'flex';
+        imagePreviewBox.classList.remove('has-image');
+    }
+
+    function mostrarVistaPrevia() {
+        if (!imagePreview || !imagePreviewBox || !imagePreviewText || !imagePreviewIcon) {
+            return;
+        }
+
+        const archivo = imagenInput && imagenInput.files ? imagenInput.files[0] : null;
+        const urlEscrita = imagenUrlInput ? imagenUrlInput.value.trim() : '';
+
+        limpiarObjectUrl();
 
         if (archivo) {
             objectUrlActual = URL.createObjectURL(archivo);
-            imagePreview.src = objectUrlActual;
-            imagePreview.style.display = 'block';
-            imagePreviewText.style.display = 'none';
-            imagePreviewBox.classList.add('has-image');
-        } else if (imagenInicial) {
-            imagePreview.src = imagenInicial;
-            imagePreview.style.display = 'block';
-            imagePreviewText.style.display = 'none';
-            imagePreviewBox.classList.add('has-image');
-        } else {
-            imagePreview.removeAttribute('src');
-            imagePreview.style.display = 'none';
-            imagePreviewText.style.display = 'block';
-            imagePreviewBox.classList.remove('has-image');
+            pintarConImagen(objectUrlActual);
+            return;
         }
+
+        if (urlEscrita) {
+            pintarConImagen(urlEscrita);
+            return;
+        }
+
+        if (imagenInicial) {
+            pintarConImagen(imagenInicial);
+            return;
+        }
+
+        pintarSinImagen();
+    }
+
+    if (imagePreview) {
+        imagePreview.addEventListener('error', () => {
+            pintarSinImagen();
+            imagePreviewText.textContent = 'No se pudo cargar la imagen. Revisa la URL o sube un archivo.';
+        });
     }
 
     if (imagenInput) {
         imagenInput.addEventListener('change', mostrarVistaPrevia);
-        mostrarVistaPrevia();
     }
+
+    if (imagenUrlInput) {
+        imagenUrlInput.addEventListener('input', mostrarVistaPrevia);
+    }
+
+    mostrarVistaPrevia();
 });
 
 function getCookie(name) {
