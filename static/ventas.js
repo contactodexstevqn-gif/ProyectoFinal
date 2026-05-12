@@ -4,6 +4,74 @@
     const totalPreview = document.getElementById('vpTotalPreview');
     const stockPreview = document.getElementById('vpStockPreview');
 
+    const clienteRadios = Array.from(document.querySelectorAll('input[name="cliente_modo"]'));
+    const clienteExistenteBox = document.getElementById('clienteExistenteBox');
+    const clienteNuevoBox = document.getElementById('clienteNuevoBox');
+    const clienteSelect = document.getElementById('cliente_id');
+    const clienteSearch = document.getElementById('clienteSearch');
+    const documentoCliente = document.getElementById('documento_cliente');
+    const nombreCliente = document.getElementById('nombre_cliente');
+
+    function actualizarClienteBox() {
+        if (!clienteRadios.length || !clienteExistenteBox || !clienteNuevoBox) {
+            return;
+        }
+
+        const seleccionado = clienteRadios.find(radio => radio.checked);
+        const modo = seleccionado ? seleccionado.value : 'rapida';
+
+        clienteExistenteBox.style.display = modo === 'existente' ? 'block' : 'none';
+        clienteNuevoBox.style.display = modo === 'nuevo' ? 'block' : 'none';
+
+        if (clienteSelect) {
+            clienteSelect.required = modo === 'existente';
+        }
+
+        if (documentoCliente) {
+            documentoCliente.required = modo === 'nuevo';
+        }
+
+        if (nombreCliente) {
+            nombreCliente.required = modo === 'nuevo';
+        }
+    }
+
+    function filtrarClientes() {
+        if (!clienteSearch || !clienteSelect) {
+            return;
+        }
+
+        const texto = clienteSearch.value.trim().toLowerCase();
+        const opciones = Array.from(clienteSelect.options);
+
+        opciones.forEach(function (option, index) {
+            if (index === 0) {
+                option.hidden = false;
+                return;
+            }
+
+            const contenido = `${option.textContent || ''} ${option.dataset.search || ''}`.toLowerCase();
+            option.hidden = texto && !contenido.includes(texto);
+        });
+
+        const opcionSeleccionada = clienteSelect.options[clienteSelect.selectedIndex];
+
+        if (opcionSeleccionada && opcionSeleccionada.hidden) {
+            clienteSelect.selectedIndex = 0;
+        }
+    }
+
+    clienteRadios.forEach(function (radio) {
+        radio.addEventListener('change', actualizarClienteBox);
+    });
+
+    if (clienteSearch) {
+        clienteSearch.addEventListener('input', filtrarClientes);
+    }
+
+    actualizarClienteBox();
+    filtrarClientes();
+
     if (!productsList || !addProductButton || !totalPreview || !stockPreview) {
         return;
     }
