@@ -28,6 +28,12 @@
     </header>
 
     <nav class="header-actions" aria-label="Acciones rápidas">
+        {% if not es_admin %}
+        <a href="{% url 'catalogo_publico' %}" class="btn btn-primary-custom" target="_blank">
+            <i class='bx bx-show'></i>
+            Ver catálogo público
+        </a>
+        {% endif %}
         <a href="{% url 'exportar_ventas' %}" class="btn btn-outline-custom">
             <i class='bx bx-file'></i>
             {% if es_admin %}Exportar ventas{% else %}Descargar mi reporte{% endif %}

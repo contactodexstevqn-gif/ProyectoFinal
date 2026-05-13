@@ -110,3 +110,10 @@ def usuarios(request):
         'es_admin': es_administrador(request.user),
         'rol_usuario': rol_usuario(request.user),
     })
+
+def inicio(request):
+    return render(request, 'index.html')
+
+
+def formulario(request):
+    return render(request, 'formulario.html')

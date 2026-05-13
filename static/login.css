@@ -315,6 +315,36 @@ body {
     transform: scale(0.98);
 }
 
+.back-btn{
+    height: 54px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    margin-top:0px;
+    padding:10px;
+    border-radius:14px;
+    text-decoration:none;
+    background: linear-gradient(135deg, #eb3f3f, #eb3f3f);
+    color: var(--white);
+    font-weight:600;
+    transition:.3s;
+}
+
+.back-btn i{
+    color: var(--white);
+    font-size:21px;
+}
+
+.back-btn:hover{
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #e41313, #eb3f3f);
+    box-shadow: 0 16px 28px rgba(17, 24, 39, 0.35);
+}
+
+.back-btn:active{
+    transform: scale(0.98);
+}
 .access-text {
     text-align: center;
     color: var(--muted);

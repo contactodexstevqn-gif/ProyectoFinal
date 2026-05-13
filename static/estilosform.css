@@ -1,0 +1,111 @@
+:root {
+    --principal: #8b5cf6;
+    --principal-oscuro: #5b21b6;
+    --secundario: #f97316;
+    --oscuro: #171321;
+    --texto: #2d2a36;
+    --muted: #6c6575;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background:
+        radial-gradient(circle at 20% 15%, rgba(249, 115, 22, 0.28), transparent 30%),
+        radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.42), transparent 30%),
+        linear-gradient(135deg, #171321 0%, #2a164d 52%, #111827 100%);
+    min-height: 100vh;
+}
+
+.formulario-moda {
+    background: #ffffff;
+    padding: 36px;
+    border-radius: 26px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.22);
+    border-top: 6px solid var(--principal);
+}
+
+.logo-form {
+    width: 150px;
+    height: 150px;
+}
+
+.titulo-formulario {
+    font-weight: 800;
+    color: var(--oscuro);
+    margin-bottom: 8px;
+}
+
+.subtitulo-formulario {
+    color: var(--muted);
+    margin-bottom: 0;
+}
+
+.form-label {
+    font-weight: 700;
+    color: var(--oscuro);
+}
+
+.form-control,
+.form-select {
+    border-radius: 14px;
+    border: 1px solid #e6dff1;
+    padding: 12px 14px;
+    transition: all 0.25s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--principal);
+    box-shadow: 0 0 0 0.2rem rgba(139, 92, 246, 0.18);
+}
+
+textarea {
+    resize: none;
+}
+
+.form-check-label {
+    color: #504a5f;
+}
+
+.form-check-input:checked {
+    background-color: var(--principal);
+    border-color: var(--principal);
+}
+
+.btn-enviar {
+    background: linear-gradient(135deg, var(--principal), var(--secundario));
+    color: white;
+    border: none;
+    border-radius: 999px;
+    padding: 12px;
+    font-weight: 800;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.btn-enviar:hover {
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(139, 92, 246, 0.28);
+}
+
+.btn-outline-secondary {
+    border-radius: 999px;
+    padding: 12px;
+    font-weight: 700;
+}
+
+@media (max-width: 768px) {
+    .formulario-moda {
+        padding: 26px 20px;
+    }
+
+    .titulo-formulario {
+        font-size: 1.8rem;
+    }
+}
