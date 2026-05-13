@@ -28,4 +28,29 @@ class VendedorForm(forms.ModelForm):
 
         return cleaned_data
 
-        
+class VendedorEditForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'username', 'email']
+
+        widgets = {
+            'first_name': forms.TextInput(attrs={
+                'placeholder': 'Nombre del vendedor'
+            }),
+            'last_name': forms.TextInput(attrs={
+                'placeholder': 'Apellido del vendedor'
+            }),
+            'username': forms.TextInput(attrs={
+                'placeholder': 'Usuario de acceso'
+            }),
+            'email': forms.EmailInput(attrs={
+                'placeholder': 'Correo electrónico'
+            }),
+        }
+
+        labels = {
+            'first_name': 'Nombre',
+            'last_name': 'Apellido',
+            'username': 'Vendedor',
+            'email': 'Correo'
+        }       

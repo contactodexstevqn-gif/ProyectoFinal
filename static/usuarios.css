@@ -982,7 +982,6 @@ body.dark-mode .modal-confirm-cancel:hover {
     background: #374151;
 }
 
-/* Scroll para tabla de usuarios */
 .users-panel {
     align-self: start;
 }
@@ -993,7 +992,6 @@ body.dark-mode .modal-confirm-cancel:hover {
     border-radius: 16px;
 }
 
-/* Encabezado fijo dentro del scroll */
 .users-table thead th {
     position: sticky;
     top: 0;
@@ -1001,7 +999,6 @@ body.dark-mode .modal-confirm-cancel:hover {
     background: var(--card);
 }
 
-/* Scroll para actividad reciente */
 .activity-panel {
     align-self: start;
 }
@@ -1012,7 +1009,6 @@ body.dark-mode .modal-confirm-cancel:hover {
     padding-right: 8px;
 }
 
-/* Scroll bonito en usuarios */
 .users-panel .table-responsive,
 .activity-list {
     scrollbar-width: thin;
@@ -1037,4 +1033,8 @@ body.dark-mode .modal-confirm-cancel:hover {
 .activity-list::-webkit-scrollbar-thumb:hover {
     background: var(--accent);
     background-clip: content-box;
+}
+
+.hidden-activity {
+    display: none;
 }

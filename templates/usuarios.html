@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block titulo %}Usuarios | {{ configuracion_tienda.nombre_tienda|default:'Fucsia Boutique' }}{% endblock %}
+{% block titulo %}Vendedores | {{ configuracion_tienda.nombre_tienda|default:'Fucsia Boutique' }}{% endblock %}
 
 {% block estilos %}
 <link rel="stylesheet" href="{% static 'usuarios.css' %}">
@@ -12,7 +12,7 @@
 <section class="page-header">
     <header>
         <p>Bienvenido, {{ request.user.username }}</p>
-        <h1>Usuarios</h1>
+        <h1>Vendedores</h1>
     </header>
 
     <nav class="header-actions">
@@ -23,7 +23,7 @@
 
         <a href="{% url 'crear_vendedor' %}" class="btn-primary">
             <i class='bx bx-plus'></i>
-            Nuevo usuario
+            Nuevo vendedor
         </a>
     </nav>
 </section>
@@ -35,7 +35,7 @@
         </section>
 
         <section>
-            <span>Usuarios totales</span>
+            <span>Vendedores totales</span>
             <h3>{{ total_usuarios }}</h3>
             <p>Registrados</p>
         </section>
@@ -47,7 +47,7 @@
         </section>
 
         <section>
-            <span>Usuarios activos</span>
+            <span>Vendedores activos</span>
             <h3>{{ usuarios_activos }}</h3>
             <p>Con acceso</p>
         </section>
@@ -61,7 +61,7 @@
         <section>
             <span>Inactivos</span>
             <h3>{{ usuarios_inactivos }}</h3>
-            <p class="warning-text">Revisar usuarios</p>
+            <p class="warning-text">Revisar vendedores</p>
         </section>
     </article>
 </section>
@@ -71,11 +71,11 @@
     <article class="panel-card users-panel">
         <header class="panel-header">
             <section>
-                <h2>Listado de usuarios</h2>
+                <h2>Listado de Vendedores</h2>
                 <p>Gestiona los vendedores registrados en el sistema</p>
             </section>
 
-            <span class="badge-custom">Usuarios</span>
+            <span class="badge-custom">Vendedores</span>
         </header>
 
         <section class="table-responsive">
@@ -132,25 +132,23 @@
 
                         <td>
                             <section class="table-actions">
-                                <button type="button" class="action-btn edit-btn" title="Editar usuario">
+                                <a href="{% url 'editar_vendedor' usuario.id %}" class="action-btn edit-btn"
+                                    title="Editar vendedor">
                                     <i class='bx bx-edit-alt'></i>
-                                </button>
+                                </a>
 
                                 {% if usuario != request.user %}
-                                <form 
-                                    method="POST" 
-                                    action="{% url 'cambiar_estado_usuario' usuario.id %}"
-                                    class="form-cambiar-estado" 
-                                    data-usuario="{{ usuario.username }}"
+                                <form method="POST" action="{% url 'cambiar_estado_usuario' usuario.id %}"
+                                    class="form-cambiar-estado" data-usuario="{{ usuario.username }}"
                                     data-accion="{% if usuario.is_active %}desactivar{% else %}activar{% endif %}">
                                     {% csrf_token %}
 
                                     {% if usuario.is_active %}
-                                    <button type="submit" class="action-btn danger-btn" title="Desactivar usuario">
+                                    <button type="submit" class="action-btn danger-btn" title="Desactivar vendedor">
                                         <i class='bx bx-user-x'></i>
                                     </button>
                                     {% else %}
-                                    <button type="submit" class="action-btn edit-btn" title="Activar usuario">
+                                    <button type="submit" class="action-btn edit-btn" title="Activar vendedor">
                                         <i class='bx bx-user-check'></i>
                                     </button>
                                     {% endif %}
@@ -167,7 +165,7 @@
                     {% empty %}
                     <tr>
                         <td colspan="6" class="empty-row">
-                            No hay usuarios registrados.
+                            No hay vendedores registrados.
                         </td>
                     </tr>
                     {% endfor %}
@@ -186,9 +184,9 @@
             <i class='bx bx-list-check panel-icon'></i>
         </header>
 
-        <section class="activity-list">
-            {% for usuario in usuarios|slice:":6" %}
-            <article class="activity-item">
+        <section class="activity-list" id="listaActividad">
+            {% for usuario in usuarios %}
+            <article class="activity-item {% if forloop.counter > 4 %}hidden-activity{% endif %}">
                 <span class="activity-icon">
                     <i class='bx bx-user'></i>
                 </span>
@@ -203,9 +201,11 @@
             {% endfor %}
         </section>
 
-        <button type="button" class="history-btn">
+        {% if usuarios|length > 4 %}
+        <button type="button" class="history-btn" id="btnActividad">
             Ver toda la actividad
         </button>
+        {% endif %}
     </aside>
 
 </section>

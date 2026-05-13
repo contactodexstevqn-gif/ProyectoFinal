@@ -81,3 +81,23 @@ if (btnExportar) {
         URL.revokeObjectURL(url);
     });
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const btnActividad = document.getElementById('btnActividad');
+    const actividadesOcultas = document.querySelectorAll('.hidden-activity');
+
+    if (!btnActividad || actividadesOcultas.length === 0) {
+        return;
+    }
+
+    btnActividad.addEventListener('click', () => {
+        const abierto = btnActividad.dataset.estado === 'abierto';
+
+        actividadesOcultas.forEach(actividad => {
+            actividad.style.display = abierto ? 'none' : 'flex';
+        });
+
+        btnActividad.dataset.estado = abierto ? 'cerrado' : 'abierto';
+        btnActividad.textContent = abierto ? 'Ver toda la actividad' : 'Ver menos';
+    });
+});

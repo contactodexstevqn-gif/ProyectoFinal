@@ -6,11 +6,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crear vendedor | {{ configuracion_tienda.nombre_tienda|default:'Fucsia Boutique' }}</title>
+    <title>Editar vendedor | {{ configuracion_tienda.nombre_tienda|default:'Fucsia Boutique' }}</title>
 
     <link rel="stylesheet" href="{% static 'crear_vendedor.css' %}">
+    <link rel="stylesheet" href="{% static 'sweetalert_custom.css' %}">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-    <script src="{% static 'crear_vendedor.js' %}" defer></script>
 </head>
 
 <body>
@@ -28,22 +28,19 @@
                 <section class="header-content">
                     <section>
                         <p>Administración</p>
-                        <h1>Crear vendedor</h1>
-                        <span>Registra un nuevo vendedor autorizado para ingresar al sistema.</span>
+                        <h1>Editar vendedor</h1>
+                        <span>Actualiza la información de {{ vendedor.username }}.</span>
                     </section>
 
                     <section class="header-icon">
-                        <i class='bx bx-user-plus'></i>
+                        <i class='bx bx-edit-alt'></i>
                     </section>
                 </section>
             </header>
 
-            <form method="POST" class="confirm-form"
-                data-confirm-title="¿Registrar cuenta?"
-                data-confirm-text="Se guardarán los datos del vendedor y podrá iniciar sesión."
-                data-confirm-icon="question" 
-                data-confirm-button="Sí, registrarme" 
-                data-loading-text="Creando...">
+            <form method="POST" class="confirm-form" data-confirm-title="¿Guardar cambios?"
+                data-confirm-text="Se actualizará la información del vendedor." data-confirm-icon="question"
+                data-confirm-button="Sí, guardar" data-loading-text="Guardando...">
                 {% csrf_token %}
 
                 {% if form.non_field_errors %}
@@ -76,7 +73,7 @@
                     </section>
 
                     <section class="form-group">
-                        <label for="{{ form.username.id_for_label }}">Usuario</label>
+                        <label for="{{ form.username.id_for_label }}">Vendedor</label>
                         <section class="input-box">
                             <i class='bx bx-id-card'></i>
                             {{ form.username }}
@@ -93,38 +90,11 @@
                         {{ form.email.errors }}
                     </section>
 
-                    <section class="form-group">
-                        <label for="{{ form.contra.id_for_label }}">Contraseña</label>
-                        <section class="input-box">
-                            <i class='bx bx-lock-alt'></i>
-                            {{ form.contra }}
-
-                            <button type="button" class="toggle-password" data-target="{{ form.contra.id_for_label }}">
-                                <i class='bx bx-show'></i>
-                            </button>
-                        </section>
-                        {{ form.contra.errors }}
-                    </section>
-
-                    <section class="form-group">
-                        <label for="{{ form.confirmarContra.id_for_label }}">Confirmar contraseña</label>
-                        <section class="input-box">
-                            <i class='bx bx-lock'></i>
-                            {{ form.confirmarContra }}
-
-                            <button type="button" class="toggle-password"
-                                data-target="{{ form.confirmarContra.id_for_label }}">
-                                <i class='bx bx-show'></i>
-                            </button>
-                        </section>
-                        {{ form.confirmarContra.errors }}
-                    </section>
-
                 </section>
 
                 <section class="password-tips">
                     <i class='bx bx-info-circle'></i>
-                    <p>Usa una contraseña segura y compártela únicamente con el vendedor autorizado.</p>
+                    <p>Este formulario actualiza los datos del vendedor, no cambia su contraseña.</p>
                 </section>
 
                 <footer class="form-actions">
@@ -134,7 +104,7 @@
 
                     <button type="submit" class="btn-primary">
                         <i class='bx bx-save'></i>
-                        Crear vendedor
+                        Guardar cambios
                     </button>
                 </footer>
             </form>
@@ -142,6 +112,10 @@
         </section>
 
     </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{% static 'sweetalert_global.js' %}"></script>
+    <script src="{% static 'confirmaciones.js' %}"></script>
 
 </body>
 

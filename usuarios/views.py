@@ -11,7 +11,7 @@ from backend.permissions import (
     es_administrador,
     rol_usuario,
 )
-from .forms import VendedorForm
+from .forms import VendedorForm, VendedorEditForm
 
 
 def iniciarSesion(request):
@@ -90,6 +90,29 @@ def crearVendedor(request):
         'rol_usuario': rol_usuario(request.user),
     })
 
+@login_required
+@admin_required
+def editarVendedor(request, usuario_id):
+    vendedor = get_object_or_404(User, id=usuario_id, is_superuser=False)
+
+    if request.method == 'POST':
+        form = VendedorEditForm(request.POST, instance=vendedor)
+
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'El vendedor {vendedor.username} fue actualizado correctamente.')
+            return redirect('usuarios')
+
+        messages.error(request, 'No se pudo actualizar el vendedor. Revisa los datos ingresados.')
+    else:
+        form = VendedorEditForm(instance=vendedor)
+
+    return render(request, 'editar_vendedor.html', {
+        'form': form,
+        'vendedor': vendedor,
+        'es_admin': es_administrador(request.user),
+        'rol_usuario': rol_usuario(request.user),
+    })
 
 @login_required
 @admin_required
