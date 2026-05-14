@@ -7,15 +7,21 @@
     <title>Iniciar sesión | {{ configuracion_tienda.nombre_tienda|default:'Fucsia Boutique' }}</title>
 
     <link rel="stylesheet" href="{% static 'login.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 </head>
 
 <body>
 
+    <button class="theme-action login-theme-action" id="themeToggle" type="button" aria-label="Cambiar tema">
+        <i class='bx bx-moon'></i>
+    </button>
+
     <section class="background-shapes" aria-hidden="true">
         <span class="shape shape-1"></span>
         <span class="shape shape-2"></span>
         <span class="shape shape-3"></span>
+        <span class="shape shape-4"></span>
     </section>
 
     <main class="login-page">

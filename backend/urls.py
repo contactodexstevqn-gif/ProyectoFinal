@@ -18,6 +18,7 @@ urlpatterns = [
     path('venta/', include('ventas.urls')),
     path('catalogo/', catalogo_publico, name='catalogo_publico'),
     path('reportes/', include('reportes.urls')),
+    path('', views.index, name='index'),
 ]
 
 if settings.DEBUG:

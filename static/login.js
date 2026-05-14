@@ -17,3 +17,39 @@ if (togglePassword && passwordInput) {
         );
     });
 }
+
+const themeToggle = document.getElementById("themeToggle");
+const savedTheme = localStorage.getItem("tema");
+
+function updateThemeIcon() {
+    if (!themeToggle) {
+        return;
+    }
+
+    const icon = themeToggle.querySelector("i");
+    const isDark = document.body.classList.contains("dark-mode");
+
+    if (icon) {
+        icon.className = isDark ? "bx bx-sun" : "bx bx-moon";
+    }
+}
+
+if (savedTheme === "oscuro") {
+    document.body.classList.add("dark-mode");
+}
+
+if (savedTheme === "claro") {
+    document.body.classList.remove("dark-mode");
+}
+
+updateThemeIcon();
+
+if (themeToggle) {
+    themeToggle.addEventListener("click", () => {
+        const isDark = document.body.classList.toggle("dark-mode");
+
+        localStorage.setItem("tema", isDark ? "oscuro" : "claro");
+
+        updateThemeIcon();
+    });
+}
