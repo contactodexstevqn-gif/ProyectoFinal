@@ -293,7 +293,7 @@ def nueva_venta(request):
     total_mes = ventas_mes.aggregate(total=Sum('total'))['total'] or 0
     unidades_vendidas = ventas_base.aggregate(total=Sum('cantidad'))['total'] or 0
 
-    return render(request, 'nueva_venta.html', {
+    return render(request, 'ventas/nueva_venta.html', {
         'productos': productos,
         'productos_disponibles': productos_disponibles,
         'vendedores_registrados': vendedores,
@@ -335,8 +335,14 @@ def historial_ventas(request):
     ventas = ventas_filtradas.order_by('-fecha')
     vendedores = vendedores_registrados() if es_admin else User.objects.none()
 
-    return render(request, 'historial_ventas.html', {
-        'ventas': ventas,
+    paginator = Paginator(ventas, 10)
+    pagina = request.GET.get('page')
+    ventas_pagina = paginator.get_page(pagina)
+    query_params = request.GET.copy()
+    query_params.pop('page', None)
+
+    return render(request, 'ventas/historial_ventas.html', {
+        'ventas': ventas_pagina,
         'vendedores': vendedores,
         'query': query,
         'fecha': fecha,
@@ -346,6 +352,7 @@ def historial_ventas(request):
         'total_filtrado': total_filtrado,
         'unidades_filtradas': unidades_filtradas,
         'cantidad_ventas': cantidad_ventas,
+        'query_params': query_params.urlencode(),
     })
 
 
@@ -372,11 +379,13 @@ def clientes(request):
     clientes_con_compras = clientes_lista.filter(cantidad_ventas__gt=0).count()
     total_compras = clientes_lista.aggregate(total=Sum('ventas__total'))['total'] or 0
 
-    paginator = Paginator(clientes_lista, 15)
+    paginator = Paginator(clientes_lista, 10)
     pagina = request.GET.get('page')
     clientes_pagina = paginator.get_page(pagina)
+    query_params = request.GET.copy()
+    query_params.pop('page', None)
 
-    return render(request, 'clientes.html', {
+    return render(request, 'clientes/clientes.html', {
         'clientes': clientes_pagina,
         'query': query,
         'total_clientes': total_clientes,
@@ -384,6 +393,7 @@ def clientes(request):
         'total_compras': total_compras,
         'es_admin': es_administrador(request.user),
         'rol_usuario': rol_usuario(request.user),
+        'query_params': query_params.urlencode(),
     })
 
 
@@ -406,11 +416,11 @@ def detalle_cliente(request, cliente_id):
     unidades_compradas = ventas_cliente.aggregate(total=Sum('cantidad'))['total'] or 0
     productos_diferentes = ventas_cliente.values('producto_id').distinct().count()
 
-    paginator = Paginator(ventas_cliente, 15)
+    paginator = Paginator(ventas_cliente, 10)
     pagina = request.GET.get('page')
     ventas_pagina = paginator.get_page(pagina)
 
-    return render(request, 'detalle_cliente.html', {
+    return render(request, 'clientes/detalle_cliente.html', {
         'cliente': cliente,
         'ventas': ventas_pagina,
         'total_comprado': total_comprado,
@@ -445,7 +455,7 @@ def editar_cliente(request, cliente_id):
         messages.success(request, 'Cliente actualizado correctamente.')
         return redirect('clientes')
 
-    return render(request, 'editar_cliente.html', {
+    return render(request, 'clientes/editar_cliente.html', {
         'cliente': cliente,
         'es_admin': es_administrador(request.user),
         'rol_usuario': rol_usuario(request.user),

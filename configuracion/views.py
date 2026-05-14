@@ -24,7 +24,7 @@ def configuracion_sistema(request):
     else:
         form = ConfiguracionTiendaForm(instance=configuracion)
 
-    return render(request, 'configuracion.html', {
+    return render(request, 'configuracion/configuracion.html', {
         'form': form,
         'configuracion': configuracion,
         'rol_usuario': rol_usuario(request.user),

@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group, User
+from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 
 from backend.permissions import (
@@ -25,11 +26,11 @@ def iniciarSesion(request):
             login(request, usuario)
             return redirect('dashboard')
         else:
-            return render(request, 'login.html', {
+            return render(request, 'public/login.html', {
                 'error': 'Cuenta no encontrada'
             })
 
-    return render(request, 'login.html')
+    return render(request, 'public/login.html')
 
 
 def cerrarSesion(request):
@@ -46,8 +47,12 @@ def gestionUsuarios(request):
     usuarios_activos = usuarios.filter(is_active=True).count()
     usuarios_inactivos = usuarios.filter(is_active=False).count()
 
-    return render(request, 'usuarios.html', {
-        'usuarios': usuarios,
+    paginator = Paginator(usuarios, 10)
+    pagina = request.GET.get('page')
+    usuarios_pagina = paginator.get_page(pagina)
+
+    return render(request, 'usuarios/usuarios.html', {
+        'usuarios': usuarios_pagina,
         'total_usuarios': total_usuarios,
         'usuarios_activos': usuarios_activos,
         'usuarios_inactivos': usuarios_inactivos,
@@ -84,7 +89,7 @@ def crearVendedor(request):
     else:
         form = VendedorForm()
 
-    return render(request, 'crear_vendedor.html', {
+    return render(request, 'usuarios/crear_vendedor.html', {
         'form': form,
         'es_admin': es_administrador(request.user),
         'rol_usuario': rol_usuario(request.user),
@@ -107,7 +112,7 @@ def editarVendedor(request, usuario_id):
     else:
         form = VendedorEditForm(instance=vendedor)
 
-    return render(request, 'editar_vendedor.html', {
+    return render(request, 'usuarios/editar_vendedor.html', {
         'form': form,
         'vendedor': vendedor,
         'es_admin': es_administrador(request.user),
