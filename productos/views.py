@@ -55,8 +55,14 @@ def listar_productos(request):
     stock_bajo = Producto.objects.filter(stock__gte=1, stock__lte=stock_minimo).count()
     sin_stock = Producto.objects.filter(stock=0).count()
 
-    return render(request, 'productos.html', {
-        'productos': productos,
+    paginator = Paginator(productos, 10)
+    pagina = request.GET.get('page')
+    productos_pagina = paginator.get_page(pagina)
+    query_params = request.GET.copy()
+    query_params.pop('page', None)
+
+    return render(request, 'productos/productos.html', {
+        'productos': productos_pagina,
         'categorias': categorias,
         'query': query,
         'categoria_id': categoria_id,
@@ -65,6 +71,7 @@ def listar_productos(request):
         'stock_bajo': stock_bajo,
         'sin_stock': sin_stock,
         'stock_minimo_alerta': stock_minimo,
+        'query_params': query_params.urlencode(),
     })
 
 
@@ -95,7 +102,7 @@ def agregar_producto(request):
     else:
         form = ProductoForm()
 
-    return render(request, 'agregar_producto.html', {
+    return render(request, 'productos/agregar_producto.html', {
         'form': form
     })
 
@@ -117,7 +124,7 @@ def agregar_categoria(request):
     else:
         form = CategoriaForm()
 
-    return render(request, 'agregar_categoria.html', {
+    return render(request, 'formularios/agregar_categoria.html', {
         'form': form,
         'categorias': categorias
     })
@@ -170,7 +177,7 @@ def editar_producto(request, producto_id):
     else:
         form = ProductoEditForm(instance=producto)
 
-    return render(request, 'editar_producto.html', {
+    return render(request, 'productos/editar_producto.html', {
         'form': form,
         'producto': producto
     })
@@ -259,13 +266,17 @@ def actualizar_stock(request, producto_id):
         'producto__categoria'
     ).filter(
         producto=producto
-    ).order_by('-fecha')[:10]
+    ).order_by('-fecha')
 
-    return render(request, 'actualizar_stock.html', {
+    paginator = Paginator(movimientos_producto, 10)
+    pagina = request.GET.get('page')
+    movimientos_pagina = paginator.get_page(pagina)
+
+    return render(request, 'productos/actualizar_stock.html', {
         'producto': producto,
         'tipoElecciones': MovimientoInventario.tipoElecciones,
         'motivoElecciones': MovimientoInventario.motivoElecciones,
-        'movimientos_producto': movimientos_producto,
+        'movimientos_producto': movimientos_pagina,
         'stock_minimo_alerta': stock_minimo,
     })
 
@@ -294,12 +305,12 @@ def eliminar_producto(request, producto_id):
             return redirect('productos')
 
         messages.error(request, 'Debes confirmar la eliminacion para continuar.')
-        return render(request, 'eliminar_producto.html', {
+        return render(request, 'productos/eliminar_producto.html', {
             'producto': producto,
             'error': 'Debes confirmar la eliminacion para continuar.'
         })
 
-    return render(request, 'eliminar_producto.html', {
+    return render(request, 'productos/eliminar_producto.html', {
         'producto': producto
     })
 
@@ -353,15 +364,29 @@ def inventario(request):
     movimientos_recientes = MovimientoInventario.objects.select_related(
         'producto',
         'producto__categoria'
-    ).all().order_by('-fecha')[:50]
+    ).all().order_by('-fecha')
+
+    productos_paginator = Paginator(productos_lista, 10)
+    productos_pagina_numero = request.GET.get('productos_page')
+    productos_pagina = productos_paginator.get_page(productos_pagina_numero)
+
+    movimientos_paginator = Paginator(movimientos_recientes, 10)
+    movimientos_pagina_numero = request.GET.get('movimientos_page')
+    movimientos_pagina = movimientos_paginator.get_page(movimientos_pagina_numero)
+
+    productos_query_params = request.GET.copy()
+    productos_query_params.pop('productos_page', None)
+
+    movimientos_query_params = request.GET.copy()
+    movimientos_query_params.pop('movimientos_page', None)
 
     total_movimientos = MovimientoInventario.objects.count()
     total_entradas = MovimientoInventario.objects.filter(tipo='entrada').count()
     total_salidas = MovimientoInventario.objects.filter(tipo='salida').count()
     total_correcciones = MovimientoInventario.objects.filter(tipo='correccion').count()
 
-    return render(request, 'inventario.html', {
-        'productos': productos_lista,
+    return render(request, 'inventario/inventario.html', {
+        'productos': productos_pagina,
         'categorias': categorias,
         'query': query,
         'categoria_id': categoria_id,
@@ -373,11 +398,13 @@ def inventario(request):
         'valor_total': valor_total,
         'productos_criticos': productos_criticos,
         'stock_minimo_alerta': stock_minimo,
-        'movimientos_recientes': movimientos_recientes,
+        'movimientos_recientes': movimientos_pagina,
         'total_movimientos': total_movimientos,
         'total_entradas': total_entradas,
         'total_salidas': total_salidas,
         'total_correcciones': total_correcciones,
+        'productos_query_params': productos_query_params.urlencode(),
+        'movimientos_query_params': movimientos_query_params.urlencode(),
     })
 
 
@@ -436,11 +463,13 @@ def historial_inventario(request):
     salidas_filtradas = movimientos.filter(tipo='salida').count()
     correcciones_filtradas = movimientos.filter(tipo='correccion').count()
 
-    paginator = Paginator(movimientos, 20)
+    paginator = Paginator(movimientos, 10)
     pagina = request.GET.get('page')
     movimientos_pagina = paginator.get_page(pagina)
+    query_params = request.GET.copy()
+    query_params.pop('page', None)
 
-    return render(request, 'historial_inventario.html', {
+    return render(request, 'inventario/historial_inventario.html', {
         'movimientos': movimientos_pagina,
         'query': filtros['query'],
         'tipo': filtros['tipo'],
@@ -453,6 +482,7 @@ def historial_inventario(request):
         'entradas_filtradas': entradas_filtradas,
         'salidas_filtradas': salidas_filtradas,
         'correcciones_filtradas': correcciones_filtradas,
+        'query_params': query_params.urlencode(),
     })
 
 
@@ -560,7 +590,7 @@ def catalogo_publico(request):
     if not configuracion.mostrar_agotados_catalogo:
         productos = productos.filter(stock__gt=0)
 
-    return render(request, 'catalogo.html', {
+    return render(request, 'public/catalogo.html', {
         'productos': productos,
         'stock_minimo_alerta': stock_minimo,
         'configuracion': configuracion,

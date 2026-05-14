@@ -533,7 +533,7 @@ def agregar_encabezado_pdf(elementos, estilos, titulo, request, filtros):
 def reportes(request):
     datos = obtener_datos_reportes(request)
 
-    return render(request, 'reportes.html', {
+    return render(request, 'reportes/reportes.html', {
         'fecha_inicio': datos['filtros']['fecha_inicio'],
         'fecha_fin': datos['filtros']['fecha_fin'],
         'vendedor_id': datos['filtros']['vendedor_id'],

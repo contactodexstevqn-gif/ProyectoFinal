@@ -220,11 +220,11 @@ El archivo `requirements.txt` debe incluir las librerías necesarias para ejecut
 Ejemplo:
 
     Django==4.2.11
-    mysqlclient
-    pandas
-    openpyxl
-    Pillow
-    python-dotenv
+    mysqlclient==2.2.4
+    pandas==2.2.2
+    openpyxl==3.1.5
+    Pillow==10.4.0
+    reportlab==4.2.5
 
 También se puede generar automáticamente con:
 
@@ -246,50 +246,6 @@ Si se utiliza un archivo `.env`, se puede crear un archivo `.env.example` para d
 
 El sistema permite exportar reportes en formato Excel, utilizando las librerías Pandas y OpenPyXL.
 
-## Video de sustentación
-
-Para la entrega final se debe incluir una grabación de máximo 10 minutos explicando el funcionamiento del sistema.
-
-El video debe evidenciar:
-
-- Ejecución del servidor Django.
-- Inicio de sesión.
-- Gestión de productos.
-- Control de inventario.
-- Ajuste de stock.
-- Registro de ventas.
-- Exportación de reportes.
-- Conexión con base de datos.
-
-Ubicación recomendada:
-
-    video/sustentacion_fucsia_boutique.mp4
-
-## Recomendaciones para la entrega
-
-No incluir carpetas innecesarias en el archivo comprimido final:
-
-    venv/
-    .git/
-    __pycache__/
-
-El archivo `.zip` final debería incluir:
-
-    ProyectoFinal/
-    ├── backend/
-    ├── productos/
-    ├── usuarios/
-    ├── ventas/
-    ├── static/
-    ├── templates/
-    ├── database/
-    ├── video/
-    ├── .env.example
-    ├── .gitignore
-    ├── README.md
-    ├── requirements.txt
-    └── manage.py
-
 ## Estado del proyecto
 
 Proyecto académico desarrollado para el curso Herramientas Computacionales.
@@ -300,21 +256,6 @@ Proyecto académico desarrollado para el curso Herramientas Computacionales.
 - Stiven Mendoza
 - Santiago Vasquez
 - Keiner Perez
-
-
-## Imágenes de productos
-
-Las imágenes de los productos se suben desde el formulario de agregar/editar producto.
-Django las guarda en la carpeta `media/productos/` durante el desarrollo.
-
-La configuración está en `backend/settings.py`:
-
-```python
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-```
-
-En modo desarrollo, `backend/urls.py` sirve estos archivos cuando `DEBUG = True`.
 
 ## Configuración del sistema
 
@@ -330,10 +271,3 @@ Desde allí se puede cambiar:
 - Tema por defecto: oscuro o claro.
 - Si el catálogo público muestra productos agotados.
 
-Después de descargar esta versión, ejecuta:
-
-```bash
-python manage.py migrate
-```
-
-Esto crea la tabla de configuración sin borrar los usuarios, productos, ventas ni inventario que ya tengas en MySQL.

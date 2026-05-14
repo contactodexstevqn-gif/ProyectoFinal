@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.paginator import Paginator
 from django.db.models import Q, Sum
 from django.shortcuts import redirect, render
 
@@ -36,7 +37,7 @@ def login_view(request):
         else:
             messages.error(request, 'Usuario o contraseña incorrectos')
 
-    return render(request, 'login.html')
+    return render(request, 'public/login.html')
 
 
 @login_required(login_url='login')
@@ -76,7 +77,7 @@ def dashboard(request):
 
     ventas_recientes = ventas_base.order_by('-fecha')[:5]
 
-    return render(request, 'dashboard.html', {
+    return render(request, 'dashboard/dashboard.html', {
         'query': query,
         'productos': productos,
         'ventas_recientes': ventas_recientes,
@@ -102,11 +103,25 @@ def usuarios(request):
     usuarios_activos = usuarios.filter(is_active=True).count()
     usuarios_inactivos = usuarios.filter(is_active=False).count()
 
-    return render(request, 'usuarios.html', {
-        'usuarios': usuarios,
+    paginator = Paginator(usuarios, 10)
+    pagina = request.GET.get('page')
+    usuarios_pagina = paginator.get_page(pagina)
+
+    return render(request, 'usuarios/usuarios.html', {
+        'usuarios': usuarios_pagina,
         'total_usuarios': total_usuarios,
         'usuarios_activos': usuarios_activos,
         'usuarios_inactivos': usuarios_inactivos,
         'es_admin': es_administrador(request.user),
         'rol_usuario': rol_usuario(request.user),
     })
+
+def inicio(request):
+    return render(request, 'public/index.html')
+
+
+def formulario(request):
+    return render(request, 'formularios/formulario.html')
+
+def index(request):
+    return render(request, 'public/index.html')

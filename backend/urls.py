@@ -9,13 +9,16 @@ from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.dashboard, name='dashboard'),
+    path('', views.inicio, name='inicio'),
+    path('formulario/', views.formulario, name='formulario'),
+    path('dashboard/', views.dashboard, name='dashboard'),
     path('productos/', include('productos.urls')),
     path('configuracion/', include('configuracion.urls')),
     path('', include('usuarios.urls')),
     path('venta/', include('ventas.urls')),
     path('catalogo/', catalogo_publico, name='catalogo_publico'),
     path('reportes/', include('reportes.urls')),
+    path('', views.index, name='index'),
 ]
 
 if settings.DEBUG:
