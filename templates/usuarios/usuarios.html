@@ -78,6 +78,8 @@
             <span class="badge-custom">Vendedores</span>
         </header>
 
+        {% include 'base/per_page_control.html' with per_page=per_page per_page_options=per_page_options page_param='page' per_page_param='per_page' %}
+
         <section class="table-responsive">
             <table class="users-table" id="tablaUsuarios">
                 <thead>
@@ -176,7 +178,7 @@
         {% if usuarios.paginator.num_pages > 1 %}
         <nav class="table-pagination">
             {% if usuarios.has_previous %}
-                <a href="?page={{ usuarios.previous_page_number }}">
+                <a href="?{% if query_params %}{{ query_params }}&{% endif %}page={{ usuarios.previous_page_number }}">
                     <i class='bx bx-chevron-left'></i>
                     Anterior
                 </a>
@@ -190,7 +192,7 @@
             <strong>Página {{ usuarios.number }} de {{ usuarios.paginator.num_pages }}</strong>
 
             {% if usuarios.has_next %}
-                <a href="?page={{ usuarios.next_page_number }}">
+                <a href="?{% if query_params %}{{ query_params }}&{% endif %}page={{ usuarios.next_page_number }}">
                     Siguiente
                     <i class='bx bx-chevron-right'></i>
                 </a>

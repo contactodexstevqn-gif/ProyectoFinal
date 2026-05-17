@@ -242,6 +242,8 @@
         <span class="badge-custom">Últimos 10</span>
     </header>
 
+    {% include 'base/per_page_control.html' with per_page=per_page per_page_options=per_page_options page_param='page' per_page_param='per_page' %}
+
     <section class="table-responsive stock-history-wrapper">
         <table class="products-table stock-history-table">
             <thead>
@@ -309,7 +311,7 @@
     {% if movimientos_producto.paginator.num_pages > 1 %}
     <nav class="table-pagination">
         {% if movimientos_producto.has_previous %}
-            <a href="?page={{ movimientos_producto.previous_page_number }}">
+            <a href="?{% if query_params %}{{ query_params }}&{% endif %}page={{ movimientos_producto.previous_page_number }}">
                 <i class='bx bx-chevron-left'></i>
                 Anterior
             </a>
@@ -323,7 +325,7 @@
         <strong>Página {{ movimientos_producto.number }} de {{ movimientos_producto.paginator.num_pages }}</strong>
 
         {% if movimientos_producto.has_next %}
-            <a href="?page={{ movimientos_producto.next_page_number }}">
+            <a href="?{% if query_params %}{{ query_params }}&{% endif %}page={{ movimientos_producto.next_page_number }}">
                 Siguiente
                 <i class='bx bx-chevron-right'></i>
             </a>

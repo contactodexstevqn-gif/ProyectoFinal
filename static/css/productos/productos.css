@@ -603,3 +603,28 @@ body.dark-mode .stock-btn i {
     align-items: center;
     justify-content: center;
 }
+.products-table th:nth-child(1),
+.products-table td:nth-child(1) {
+    width: 24%;
+}
+
+.products-table th:nth-child(3),
+.products-table td:nth-child(3) {
+    width: 14%;
+}
+
+.products-table th:nth-child(7),
+.products-table td:nth-child(7) {
+    width: 16%;
+}
+
+.product-pill {
+    height: auto;
+    min-height: 40px;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: center;
+    line-height: 1.2;
+    padding: 10px 14px;
+}

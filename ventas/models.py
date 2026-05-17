@@ -8,16 +8,21 @@ from productos.models import MovimientoInventario, Producto
 class Cliente(models.Model):
     documento = models.CharField(max_length=30, unique=True)
     nombre = models.CharField(max_length=120)
+    apellido = models.CharField(max_length=120, blank=True, default='')
     correo = models.EmailField(max_length=150, blank=True, null=True)
     telefono = models.CharField(max_length=30, blank=True, null=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
     activo = models.BooleanField(default=True)
 
     class Meta:
-        ordering = ['nombre']
+        ordering = ['nombre', 'apellido']
+
+    @property
+    def nombre_completo(self):
+        return f'{self.nombre} {self.apellido}'.strip()
 
     def __str__(self):
-        return f'{self.nombre} - {self.documento}'
+        return f'{self.nombre_completo} - {self.documento}'
 
 
 class Venta(models.Model):
@@ -67,7 +72,7 @@ class Venta(models.Model):
             observacion = f'Venta registrada #{self.pk}'
 
             if self.cliente:
-                observacion = f'Venta registrada #{self.pk} para {self.cliente.nombre}.'
+                observacion = f'Venta registrada #{self.pk} para {self.cliente.nombre_completo}.'
 
             MovimientoInventario.objects.create(
                 producto=producto,

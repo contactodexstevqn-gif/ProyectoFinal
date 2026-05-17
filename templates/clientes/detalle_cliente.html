@@ -2,7 +2,7 @@
 {% load static %}
 {% load formatos %}
 
-{% block titulo %}{{ cliente.nombre }} | {{ configuracion_tienda.nombre_tienda|default:'Fucsia Boutique' }}{% endblock %}
+{% block titulo %}{{ cliente.nombre_completo }} | {{ configuracion_tienda.nombre_tienda|default:'Fucsia Boutique' }}{% endblock %}
 
 {% block estilos %}
 <link rel="stylesheet" href="{% static 'css/usuarios/usuarios.css' %}">
@@ -27,7 +27,7 @@
 <section class="page-header">
     <header>
         <p>Clientes</p>
-        <h1>{{ cliente.nombre }}</h1>
+        <h1>{{ cliente.nombre_completo }}</h1>
     </header>
 
     <nav class="header-actions">
@@ -52,11 +52,11 @@
     <article class="panel-card cliente-profile-card">
         <section class="cliente-profile-main">
             <section class="cliente-profile-avatar">
-                {{ cliente.nombre|slice:":1"|upper }}
+                {{ cliente.nombre_completo|slice:":1"|upper }}
             </section>
 
             <section class="cliente-profile-heading">
-                <h2>{{ cliente.nombre }}</h2>
+                <h2>{{ cliente.nombre_completo }}</h2>
                 <p>Documento: {{ cliente.documento }}</p>
 
                 {% if cliente.activo %}
@@ -155,11 +155,13 @@
         <header class="panel-header">
             <section>
                 <h2>Historial de compras</h2>
-                <p>Ventas asociadas a {{ cliente.nombre }}.</p>
+                <p>Ventas asociadas a {{ cliente.nombre_completo }}.</p>
             </section>
 
             <span class="badge-custom">Compras</span>
         </header>
+
+        {% include 'base/per_page_control.html' with per_page=per_page per_page_options=per_page_options page_param='page' per_page_param='per_page' %}
 
         <section class="table-responsive clientes-table-wrapper">
             <table class="products-table sales-table cliente-sales-table">
@@ -231,7 +233,7 @@
         {% if ventas.paginator.num_pages > 1 %}
         <nav class="clientes-pagination table-pagination">
             {% if ventas.has_previous %}
-                <a href="?page={{ ventas.previous_page_number }}">
+                <a href="?{% if query_params %}{{ query_params }}&{% endif %}page={{ ventas.previous_page_number }}">
                     <i class='bx bx-chevron-left'></i>
                     Anterior
                 </a>
@@ -245,7 +247,7 @@
             <strong>Pagina {{ ventas.number }} de {{ ventas.paginator.num_pages }}</strong>
 
             {% if ventas.has_next %}
-                <a href="?page={{ ventas.next_page_number }}">
+                <a href="?{% if query_params %}{{ query_params }}&{% endif %}page={{ ventas.next_page_number }}">
                     Siguiente
                     <i class='bx bx-chevron-right'></i>
                 </a>

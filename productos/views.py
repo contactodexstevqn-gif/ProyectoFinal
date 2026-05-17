@@ -1,8 +1,11 @@
 import json
+from pathlib import Path
+from uuid import uuid4
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q
@@ -15,14 +18,124 @@ from django.views.decorators.http import require_POST
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 
+from backend.pagination import OPCIONES_POR_PAGINA, obtener_por_pagina, parametros_sin_pagina
 from backend.permissions import admin_required
 from configuracion.models import ConfiguracionTienda
-from .forms import CategoriaForm, ProductoEditForm, ProductoForm
+from .forms import CategoriaForm, OPCIONES_TALLAS, ProductoEditForm, ProductoForm
 from .models import Categoria, MovimientoInventario, Producto
 
 
 def obtener_stock_minimo():
     return ConfiguracionTienda.obtener().stock_minimo_alerta
+
+
+def preparar_post_producto(request):
+    data = request.POST.copy()
+
+    if data.get('usar_tallas_multiples') == '1':
+        tallas = [talla.strip() for talla in request.POST.getlist('talla_variante')]
+        stocks = [stock.strip() for stock in request.POST.getlist('stock_variante')]
+        encontro_variante = False
+
+        for indice, talla in enumerate(tallas):
+            stock = stocks[indice] if indice < len(stocks) else ''
+
+            if talla and stock != '':
+                data['talla'] = talla
+                data['stock'] = stock
+                encontro_variante = True
+                break
+
+        if not encontro_variante:
+            data['talla'] = 'S'
+            data['stock'] = '0'
+
+    return data
+
+
+def obtener_variantes_tallas(request):
+    if request.POST.get('usar_tallas_multiples') != '1':
+        return []
+
+    tallas = [talla.strip() for talla in request.POST.getlist('talla_variante')]
+    stocks = [stock.strip() for stock in request.POST.getlist('stock_variante')]
+    variantes = []
+    tallas_usadas = set()
+
+    for indice, talla in enumerate(tallas):
+        stock_raw = stocks[indice] if indice < len(stocks) else ''
+
+        if not talla and not stock_raw:
+            continue
+
+        if not talla:
+            raise ValidationError('Debes seleccionar la talla en cada fila.')
+
+        try:
+            stock = int(stock_raw)
+        except (TypeError, ValueError):
+            raise ValidationError('El stock de cada talla debe ser un número válido.')
+
+        if stock < 0:
+            raise ValidationError('El stock de cada talla no puede ser negativo.')
+
+        clave = talla.lower()
+
+        if clave in tallas_usadas:
+            raise ValidationError(f'La talla {talla} está repetida.')
+
+        tallas_usadas.add(clave)
+        variantes.append((talla, stock))
+
+    if not variantes:
+        raise ValidationError('Agrega al menos una talla con su stock.')
+
+    return variantes
+
+
+def crear_productos_por_tallas(form, variantes, imagen_archivo):
+    datos = form.cleaned_data
+    productos_creados = []
+    imagen_bytes = None
+    imagen_nombre = ''
+
+    if imagen_archivo:
+        imagen_bytes = imagen_archivo.read()
+        imagen_nombre = imagen_archivo.name
+        imagen_archivo.seek(0)
+
+    for talla, stock in variantes:
+        producto = Producto(
+            nombre=datos['nombre'],
+            categoria=datos['categoria'],
+            talla=talla,
+            color=datos['color'],
+            precio=datos['precio'],
+            stock=stock,
+            imagen_url=datos.get('imagen_url') or None
+        )
+
+        if imagen_bytes:
+            nombre = Path(imagen_nombre).stem or 'producto'
+            extension = Path(imagen_nombre).suffix or '.jpg'
+            nombre_archivo = f'{nombre}_{talla}_{uuid4().hex[:8]}{extension}'
+            producto.imagen.save(nombre_archivo, ContentFile(imagen_bytes), save=False)
+
+        producto.save()
+        productos_creados.append(producto)
+
+        if stock > 0:
+            MovimientoInventario.objects.create(
+                producto=producto,
+                tipo='entrada',
+                motivo='correccion_manual',
+                cantidad=stock,
+                stock_anterior=0,
+                stock_nuevo=stock,
+                observacion='Stock inicial al registrar el producto por talla.'
+            )
+
+    return productos_creados
 
 
 @login_required(login_url='login')
@@ -32,6 +145,7 @@ def listar_productos(request):
     categoria_id = request.GET.get('categoria', '')
     stock = request.GET.get('stock', '')
     stock_minimo = obtener_stock_minimo()
+    per_page, per_page_int = obtener_por_pagina(request)
 
     productos = Producto.objects.select_related('categoria').all().order_by('nombre')
     categorias = Categoria.objects.all().order_by('nombre')
@@ -55,11 +169,10 @@ def listar_productos(request):
     stock_bajo = Producto.objects.filter(stock__gte=1, stock__lte=stock_minimo).count()
     sin_stock = Producto.objects.filter(stock=0).count()
 
-    paginator = Paginator(productos, 10)
+    paginator = Paginator(productos, per_page_int)
     pagina = request.GET.get('page')
     productos_pagina = paginator.get_page(pagina)
-    query_params = request.GET.copy()
-    query_params.pop('page', None)
+    query_params = parametros_sin_pagina(request, ['page'])
 
     return render(request, 'productos/productos.html', {
         'productos': productos_pagina,
@@ -71,7 +184,9 @@ def listar_productos(request):
         'stock_bajo': stock_bajo,
         'sin_stock': sin_stock,
         'stock_minimo_alerta': stock_minimo,
-        'query_params': query_params.urlencode(),
+        'query_params': query_params,
+        'per_page': per_page,
+        'per_page_options': OPCIONES_POR_PAGINA,
     })
 
 
@@ -79,31 +194,49 @@ def listar_productos(request):
 @admin_required
 def agregar_producto(request):
     if request.method == 'POST':
-        form = ProductoForm(request.POST, request.FILES)
+        post_data = preparar_post_producto(request)
+        form = ProductoForm(post_data, request.FILES)
 
         if form.is_valid():
-            producto = form.save()
+            try:
+                variantes = obtener_variantes_tallas(request)
 
-            if producto.stock > 0:
-                MovimientoInventario.objects.create(
-                    producto=producto,
-                    tipo='entrada',
-                    motivo='correccion_manual',
-                    cantidad=producto.stock,
-                    stock_anterior=0,
-                    stock_nuevo=producto.stock,
-                    observacion='Stock inicial al registrar el producto.'
-                )
+                if variantes:
+                    productos_creados = crear_productos_por_tallas(
+                        form,
+                        variantes,
+                        request.FILES.get('imagen')
+                    )
+                    messages.success(request, f'Se agregaron {len(productos_creados)} tallas del producto "{form.cleaned_data["nombre"]}" correctamente.')
+                    return redirect('productos')
 
-            messages.success(request, f'Producto "{producto.nombre}" agregado correctamente.')
-            return redirect('productos')
+                producto = form.save()
 
-        messages.error(request, 'No se pudo agregar el producto. Revisa los datos ingresados.')
+                if producto.stock > 0:
+                    MovimientoInventario.objects.create(
+                        producto=producto,
+                        tipo='entrada',
+                        motivo='correccion_manual',
+                        cantidad=producto.stock,
+                        stock_anterior=0,
+                        stock_nuevo=producto.stock,
+                        observacion='Stock inicial al registrar el producto.'
+                    )
+
+                messages.success(request, f'Producto "{producto.nombre}" agregado correctamente.')
+                return redirect('productos')
+
+            except ValidationError as error:
+                mensaje = error.messages[0] if hasattr(error, 'messages') and error.messages else 'No se pudieron validar las tallas.'
+                messages.error(request, mensaje)
+        else:
+            messages.error(request, 'No se pudo agregar el producto. Revisa los datos ingresados.')
     else:
         form = ProductoForm()
 
     return render(request, 'productos/agregar_producto.html', {
-        'form': form
+        'form': form,
+        'opciones_tallas': OPCIONES_TALLAS,
     })
 
 
@@ -268,9 +401,11 @@ def actualizar_stock(request, producto_id):
         producto=producto
     ).order_by('-fecha')
 
-    paginator = Paginator(movimientos_producto, 10)
+    per_page, per_page_int = obtener_por_pagina(request)
+    paginator = Paginator(movimientos_producto, per_page_int)
     pagina = request.GET.get('page')
     movimientos_pagina = paginator.get_page(pagina)
+    query_params = parametros_sin_pagina(request, ['page'])
 
     return render(request, 'productos/actualizar_stock.html', {
         'producto': producto,
@@ -278,6 +413,9 @@ def actualizar_stock(request, producto_id):
         'motivoElecciones': MovimientoInventario.motivoElecciones,
         'movimientos_producto': movimientos_pagina,
         'stock_minimo_alerta': stock_minimo,
+        'query_params': query_params,
+        'per_page': per_page,
+        'per_page_options': OPCIONES_POR_PAGINA,
     })
 
 
@@ -366,19 +504,19 @@ def inventario(request):
         'producto__categoria'
     ).all().order_by('-fecha')
 
-    productos_paginator = Paginator(productos_lista, 10)
+    productos_per_page, productos_per_page_int = obtener_por_pagina(request, 'productos_per_page')
+    movimientos_per_page, movimientos_per_page_int = obtener_por_pagina(request, 'movimientos_per_page')
+
+    productos_paginator = Paginator(productos_lista, productos_per_page_int)
     productos_pagina_numero = request.GET.get('productos_page')
     productos_pagina = productos_paginator.get_page(productos_pagina_numero)
 
-    movimientos_paginator = Paginator(movimientos_recientes, 10)
+    movimientos_paginator = Paginator(movimientos_recientes, movimientos_per_page_int)
     movimientos_pagina_numero = request.GET.get('movimientos_page')
     movimientos_pagina = movimientos_paginator.get_page(movimientos_pagina_numero)
 
-    productos_query_params = request.GET.copy()
-    productos_query_params.pop('productos_page', None)
-
-    movimientos_query_params = request.GET.copy()
-    movimientos_query_params.pop('movimientos_page', None)
+    productos_query_params = parametros_sin_pagina(request, ['productos_page'])
+    movimientos_query_params = parametros_sin_pagina(request, ['movimientos_page'])
 
     total_movimientos = MovimientoInventario.objects.count()
     total_entradas = MovimientoInventario.objects.filter(tipo='entrada').count()
@@ -403,8 +541,11 @@ def inventario(request):
         'total_entradas': total_entradas,
         'total_salidas': total_salidas,
         'total_correcciones': total_correcciones,
-        'productos_query_params': productos_query_params.urlencode(),
-        'movimientos_query_params': movimientos_query_params.urlencode(),
+        'productos_query_params': productos_query_params,
+        'movimientos_query_params': movimientos_query_params,
+        'productos_per_page': productos_per_page,
+        'movimientos_per_page': movimientos_per_page,
+        'per_page_options': OPCIONES_POR_PAGINA,
     })
 
 
@@ -463,11 +604,11 @@ def historial_inventario(request):
     salidas_filtradas = movimientos.filter(tipo='salida').count()
     correcciones_filtradas = movimientos.filter(tipo='correccion').count()
 
-    paginator = Paginator(movimientos, 10)
+    per_page, per_page_int = obtener_por_pagina(request)
+    paginator = Paginator(movimientos, per_page_int)
     pagina = request.GET.get('page')
     movimientos_pagina = paginator.get_page(pagina)
-    query_params = request.GET.copy()
-    query_params.pop('page', None)
+    query_params = parametros_sin_pagina(request, ['page'])
 
     return render(request, 'inventario/historial_inventario.html', {
         'movimientos': movimientos_pagina,
@@ -482,7 +623,9 @@ def historial_inventario(request):
         'entradas_filtradas': entradas_filtradas,
         'salidas_filtradas': salidas_filtradas,
         'correcciones_filtradas': correcciones_filtradas,
-        'query_params': query_params.urlencode(),
+        'query_params': query_params,
+        'per_page': per_page,
+        'per_page_options': OPCIONES_POR_PAGINA,
     })
 
 

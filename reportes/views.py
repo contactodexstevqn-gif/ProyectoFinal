@@ -659,7 +659,7 @@ def exportar_reporte_ventas_pdf(request):
     for venta in ventas:
         fecha = timezone.localtime(venta.fecha).strftime('%d/%m/%Y %I:%M %p')
         categoria = venta.producto.categoria.nombre if venta.producto.categoria else 'Sin categoría'
-        cliente = venta.cliente.nombre if venta.cliente else 'Sin cliente'
+        cliente = venta.cliente.nombre_completo if venta.cliente else 'Sin cliente'
 
         tabla_ventas.append([
             fecha,

@@ -11,6 +11,7 @@
     const clienteSearch = document.getElementById('clienteSearch');
     const documentoCliente = document.getElementById('documento_cliente');
     const nombreCliente = document.getElementById('nombre_cliente');
+    const apellidoCliente = document.getElementById('apellido_cliente');
 
     function actualizarClienteBox() {
         if (!clienteRadios.length || !clienteExistenteBox || !clienteNuevoBox) {
@@ -33,6 +34,10 @@
 
         if (nombreCliente) {
             nombreCliente.required = modo === 'nuevo';
+        }
+
+        if (apellidoCliente) {
+            apellidoCliente.required = modo === 'nuevo';
         }
     }
 

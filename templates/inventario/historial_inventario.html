@@ -190,6 +190,8 @@
             <span class="badge-custom">Inventario</span>
         </header>
 
+        {% include 'base/per_page_control.html' with per_page=per_page per_page_options=per_page_options page_param='page' per_page_param='per_page' %}
+
         <section class="table-responsive products-table-wrapper inventory-history-wrapper">
             <table class="products-table sales-table inventory-history-table">
                 <thead>

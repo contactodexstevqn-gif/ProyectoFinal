@@ -246,6 +246,8 @@
             </section>
         </header>
 
+        {% include 'base/per_page_control.html' with per_page=movimientos_per_page per_page_options=per_page_options page_param='movimientos_page' per_page_param='movimientos_per_page' %}
+
         <section class="table-responsive inventory-movements-wrapper">
             <table class="products-table inventory-movements-table">
                 <thead>
@@ -432,6 +434,8 @@
 
             <span class="badge-custom">Inventario</span>
         </header>
+
+        {% include 'base/per_page_control.html' with per_page=productos_per_page per_page_options=per_page_options page_param='productos_page' per_page_param='productos_per_page' %}
 
         <section class="table-responsive products-table-wrapper">
             <table class="products-table inventory-products-table">

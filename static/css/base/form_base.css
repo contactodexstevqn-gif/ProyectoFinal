@@ -401,3 +401,34 @@ body {
 .btn-create-category:hover i {
     color: var(--accent-dark);
 }
+.form-footer {
+    width: 100%;
+    max-width: 900px;
+    margin-top: 18px;
+    padding: 16px 20px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.92);
+    color: #6b7280;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.form-footer strong {
+    color: #111827;
+    font-weight: 900;
+}
+
+@media (max-width: 640px) {
+    .form-footer {
+        justify-content: center;
+        text-align: center;
+    }
+}
+
+.form-page {
+    flex-direction: column;
+}

@@ -49,8 +49,49 @@
         Crear categoría
     </a>
 
+    <section class="size-mode-card">
+        <label class="size-mode-toggle" for="usarTallasMultiples">
+            <input type="checkbox" id="usarTallasMultiples" name="usar_tallas_multiples" value="1">
+            <span>Crear inventario separado por talla</span>
+        </label>
+
+        <p>Activa esta opción si el mismo producto existe en varias tallas. El sistema creará una fila independiente por cada talla y su stock.</p>
+
+        <section class="size-variants-box" id="sizeVariantsBox">
+            <header class="size-variants-header">
+                <strong>Tallas del producto</strong>
+                <button type="button" class="size-add-btn" id="addSizeVariant">
+                    <i class='bx bx-plus'></i>
+                    Agregar talla
+                </button>
+            </header>
+
+            <section class="size-variants-list" id="sizeVariantsList">
+                <article class="size-variant-row">
+                    <section>
+                        <label>Talla</label>
+                        <select name="talla_variante" class="form-select size-select">
+                            {% for valor, texto in opciones_tallas %}
+                                <option value="{{ valor }}">{{ texto }}</option>
+                            {% endfor %}
+                        </select>
+                    </section>
+
+                    <section>
+                        <label>Stock</label>
+                        <input type="number" name="stock_variante" class="form-control size-stock" min="0" step="1" placeholder="0">
+                    </section>
+
+                    <button type="button" class="size-remove-btn" title="Quitar talla" disabled>
+                        <i class='bx bx-trash'></i>
+                    </button>
+                </article>
+            </section>
+        </section>
+    </section>
+
     <section class="row g-3 mt-1">
-        <section class="col-md-6">
+        <section class="col-md-6 single-size-field">
             <label class="form-label" for="{{ form.talla.id_for_label }}">Talla</label>
             <section class="input-icon">
                 <i class='bx bx-ruler'></i>
@@ -79,7 +120,7 @@
             {{ form.precio.errors }}
         </section>
 
-        <section class="col-md-6">
+        <section class="col-md-6 single-stock-field">
             <label class="form-label" for="{{ form.stock.id_for_label }}">Stock</label>
             <section class="input-icon">
                 <i class='bx bx-layer'></i>
