@@ -8,6 +8,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q, Sum
 from django.shortcuts import redirect, render
 
+from backend.pagination import OPCIONES_POR_PAGINA, obtener_por_pagina, parametros_sin_pagina
 from productos.models import Producto
 from ventas.models import Venta
 from configuracion.models import ConfiguracionTienda
@@ -103,9 +104,11 @@ def usuarios(request):
     usuarios_activos = usuarios.filter(is_active=True).count()
     usuarios_inactivos = usuarios.filter(is_active=False).count()
 
-    paginator = Paginator(usuarios, 10)
+    per_page, per_page_int = obtener_por_pagina(request)
+    paginator = Paginator(usuarios, per_page_int)
     pagina = request.GET.get('page')
     usuarios_pagina = paginator.get_page(pagina)
+    query_params = parametros_sin_pagina(request, ['page'])
 
     return render(request, 'usuarios/usuarios.html', {
         'usuarios': usuarios_pagina,
@@ -114,6 +117,9 @@ def usuarios(request):
         'usuarios_inactivos': usuarios_inactivos,
         'es_admin': es_administrador(request.user),
         'rol_usuario': rol_usuario(request.user),
+        'query_params': query_params,
+        'per_page': per_page,
+        'per_page_options': OPCIONES_POR_PAGINA,
     })
 
 def inicio(request):

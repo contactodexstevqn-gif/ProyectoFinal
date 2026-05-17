@@ -146,6 +146,127 @@ document.addEventListener('DOMContentLoaded', () => {
         imagenUrlInput.addEventListener('input', mostrarVistaPrevia);
     }
 
+    const usarTallasMultiples = document.getElementById('usarTallasMultiples');
+    const sizeVariantsBox = document.getElementById('sizeVariantsBox');
+    const sizeVariantsList = document.getElementById('sizeVariantsList');
+    const addSizeVariant = document.getElementById('addSizeVariant');
+    const singleSizeField = document.querySelector('.single-size-field');
+    const singleStockField = document.querySelector('.single-stock-field');
+    const tallaPrincipal = document.querySelector('[name="talla"]');
+    const stockPrincipal = document.querySelector('[name="stock"]');
+
+    function getSizeRows() {
+        return sizeVariantsList ? Array.from(sizeVariantsList.querySelectorAll('.size-variant-row')) : [];
+    }
+
+    function updateSizeRemoveButtons() {
+        const rows = getSizeRows();
+
+        rows.forEach((row) => {
+            const removeButton = row.querySelector('.size-remove-btn');
+
+            if (removeButton) {
+                removeButton.disabled = rows.length === 1;
+            }
+        });
+    }
+
+    function updateSizeMode() {
+        if (!usarTallasMultiples || !sizeVariantsBox) {
+            return;
+        }
+
+        const activo = usarTallasMultiples.checked;
+        sizeVariantsBox.style.display = activo ? 'block' : 'none';
+
+        if (singleSizeField) {
+            singleSizeField.style.display = activo ? 'none' : 'block';
+        }
+
+        if (singleStockField) {
+            singleStockField.style.display = activo ? 'none' : 'block';
+        }
+
+        if (tallaPrincipal) {
+            tallaPrincipal.disabled = activo;
+            tallaPrincipal.required = !activo;
+        }
+
+        if (stockPrincipal) {
+            stockPrincipal.disabled = activo;
+            stockPrincipal.required = !activo;
+        }
+
+        getSizeRows().forEach((row) => {
+            const talla = row.querySelector('.size-select');
+            const stock = row.querySelector('.size-stock');
+
+            if (talla) {
+                talla.disabled = !activo;
+                talla.required = activo;
+            }
+
+            if (stock) {
+                stock.disabled = !activo;
+                stock.required = activo;
+            }
+        });
+    }
+
+    function addSizeRow() {
+        const firstRow = sizeVariantsList ? sizeVariantsList.querySelector('.size-variant-row') : null;
+
+        if (!firstRow) {
+            return;
+        }
+
+        const newRow = firstRow.cloneNode(true);
+        const talla = newRow.querySelector('.size-select');
+        const stock = newRow.querySelector('.size-stock');
+
+        if (talla) {
+            talla.selectedIndex = 0;
+        }
+
+        if (stock) {
+            stock.value = '';
+        }
+
+        sizeVariantsList.appendChild(newRow);
+        updateSizeRemoveButtons();
+        updateSizeMode();
+    }
+
+    if (usarTallasMultiples) {
+        usarTallasMultiples.addEventListener('change', updateSizeMode);
+    }
+
+    if (addSizeVariant) {
+        addSizeVariant.addEventListener('click', addSizeRow);
+    }
+
+    if (sizeVariantsList) {
+        sizeVariantsList.addEventListener('click', (event) => {
+            const button = event.target.closest('.size-remove-btn');
+
+            if (!button || getSizeRows().length <= 1) {
+                return;
+            }
+
+            const row = button.closest('.size-variant-row');
+
+            if (row) {
+                row.remove();
+            }
+
+            updateSizeRemoveButtons();
+            updateSizeMode();
+        });
+    }
+
+    updateSizeRemoveButtons();
+    updateSizeMode();
+
     mostrarVistaPrevia();
 });
 

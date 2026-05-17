@@ -121,6 +121,8 @@
             <span class="badge-custom">Clientes</span>
         </header>
 
+        {% include 'base/per_page_control.html' with per_page=per_page per_page_options=per_page_options page_param='page' per_page_param='per_page' %}
+
         <section class="clientes-table-wrapper">
             <table class="products-table clientes-table">
                 <thead>
@@ -139,11 +141,11 @@
                         <td data-label="Cliente">
                             <section class="cliente-info">
                                 <span class="cliente-avatar">
-                                    {{ cliente.nombre|slice:":1"|upper }}
+                                    {{ cliente.nombre_completo|slice:":1"|upper }}
                                 </span>
 
                                 <section class="cliente-text">
-                                    <strong>{{ cliente.nombre }}</strong>
+                                    <strong>{{ cliente.nombre_completo }}</strong>
                                     <small>C.C. {{ cliente.documento }}</small>
                                     <small>{{ cliente.telefono|default:"Sin teléfono" }}</small>
                                 </section>

@@ -31,7 +31,7 @@ body {
     min-height: 100vh;
     background:
         linear-gradient(rgba(255, 248, 250, 0.55), rgba(255, 248, 250, 0.55)),
-        url("img/fondo.png");
+        url("../../img/fondo.png");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;

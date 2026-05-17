@@ -15,6 +15,7 @@ from django.utils.dateparse import parse_date
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 
+from backend.pagination import OPCIONES_POR_PAGINA, obtener_por_pagina, parametros_sin_pagina
 from backend.permissions import GRUPO_ADMINISTRADOR, admin_required, es_administrador, rol_usuario
 from productos.models import Producto
 from .models import Cliente, Venta
@@ -92,6 +93,7 @@ def aplicar_filtros_ventas(request, ventas, es_admin):
             Q(vendedor__last_name__icontains=query) |
             Q(cliente__documento__icontains=query) |
             Q(cliente__nombre__icontains=query) |
+            Q(cliente__apellido__icontains=query) |
             Q(cliente__correo__icontains=query)
         )
 
@@ -117,6 +119,7 @@ def obtener_cliente_venta(request):
     cliente_id = request.POST.get('cliente_id', '').strip()
     documento_cliente = request.POST.get('documento_cliente', '').strip()
     nombre_cliente = request.POST.get('nombre_cliente', '').strip()
+    apellido_cliente = request.POST.get('apellido_cliente', '').strip()
     correo_cliente = request.POST.get('correo_cliente', '').strip()
     telefono_cliente = request.POST.get('telefono_cliente', '').strip()
 
@@ -141,10 +144,14 @@ def obtener_cliente_venta(request):
         if not nombre_cliente:
             raise ValidationError('Debes ingresar el nombre del cliente.')
 
+        if not apellido_cliente:
+            raise ValidationError('Debes ingresar el apellido del cliente.')
+
         cliente, creado = Cliente.objects.get_or_create(
             documento=documento_cliente,
             defaults={
                 'nombre': nombre_cliente,
+                'apellido': apellido_cliente,
                 'correo': correo_cliente or None,
                 'telefono': telefono_cliente or None
             }
@@ -152,9 +159,10 @@ def obtener_cliente_venta(request):
 
         if not creado:
             cliente.nombre = nombre_cliente
+            cliente.apellido = apellido_cliente
             cliente.correo = correo_cliente or None
             cliente.telefono = telefono_cliente or None
-            cliente.save(update_fields=['nombre', 'correo', 'telefono'])
+            cliente.save(update_fields=['nombre', 'apellido', 'correo', 'telefono'])
 
         return cliente
 
@@ -168,7 +176,7 @@ def nueva_venta(request):
     productos = Producto.objects.select_related('categoria').all().order_by('nombre')
     productos_disponibles = productos.filter(stock__gt=0)
     vendedores = vendedores_registrados()
-    clientes = Cliente.objects.all().order_by('nombre')
+    clientes = Cliente.objects.all().order_by('nombre', 'apellido')
 
     error = None
     vendedor_id_seleccionado = ''
@@ -176,6 +184,7 @@ def nueva_venta(request):
     cliente_id_seleccionado = ''
     documento_cliente = ''
     nombre_cliente = ''
+    apellido_cliente = ''
     correo_cliente = ''
     telefono_cliente = ''
 
@@ -187,6 +196,7 @@ def nueva_venta(request):
         cliente_id_seleccionado = request.POST.get('cliente_id', '').strip()
         documento_cliente = request.POST.get('documento_cliente', '').strip()
         nombre_cliente = request.POST.get('nombre_cliente', '').strip()
+        apellido_cliente = request.POST.get('apellido_cliente', '').strip()
         correo_cliente = request.POST.get('correo_cliente', '').strip()
         telefono_cliente = request.POST.get('telefono_cliente', '').strip()
 
@@ -311,6 +321,7 @@ def nueva_venta(request):
         'cliente_id_seleccionado': cliente_id_seleccionado,
         'documento_cliente': documento_cliente,
         'nombre_cliente': nombre_cliente,
+        'apellido_cliente': apellido_cliente,
         'correo_cliente': correo_cliente,
         'telefono_cliente': telefono_cliente,
     })
@@ -335,11 +346,11 @@ def historial_ventas(request):
     ventas = ventas_filtradas.order_by('-fecha')
     vendedores = vendedores_registrados() if es_admin else User.objects.none()
 
-    paginator = Paginator(ventas, 10)
+    per_page, per_page_int = obtener_por_pagina(request)
+    paginator = Paginator(ventas, per_page_int)
     pagina = request.GET.get('page')
     ventas_pagina = paginator.get_page(pagina)
-    query_params = request.GET.copy()
-    query_params.pop('page', None)
+    query_params = parametros_sin_pagina(request, ['page'])
 
     return render(request, 'ventas/historial_ventas.html', {
         'ventas': ventas_pagina,
@@ -352,7 +363,9 @@ def historial_ventas(request):
         'total_filtrado': total_filtrado,
         'unidades_filtradas': unidades_filtradas,
         'cantidad_ventas': cantidad_ventas,
-        'query_params': query_params.urlencode(),
+        'query_params': query_params,
+        'per_page': per_page,
+        'per_page_options': OPCIONES_POR_PAGINA,
     })
 
 
@@ -365,12 +378,13 @@ def clientes(request):
         cantidad_ventas=Count('ventas'),
         total_comprado=Sum('ventas__total'),
         ultima_compra=Max('ventas__fecha')
-    ).order_by('nombre')
+    ).order_by('nombre', 'apellido')
 
     if query:
         clientes_lista = clientes_lista.filter(
             Q(documento__icontains=query) |
             Q(nombre__icontains=query) |
+            Q(apellido__icontains=query) |
             Q(correo__icontains=query) |
             Q(telefono__icontains=query)
         )
@@ -379,11 +393,11 @@ def clientes(request):
     clientes_con_compras = clientes_lista.filter(cantidad_ventas__gt=0).count()
     total_compras = clientes_lista.aggregate(total=Sum('ventas__total'))['total'] or 0
 
-    paginator = Paginator(clientes_lista, 10)
+    per_page, per_page_int = obtener_por_pagina(request)
+    paginator = Paginator(clientes_lista, per_page_int)
     pagina = request.GET.get('page')
     clientes_pagina = paginator.get_page(pagina)
-    query_params = request.GET.copy()
-    query_params.pop('page', None)
+    query_params = parametros_sin_pagina(request, ['page'])
 
     return render(request, 'clientes/clientes.html', {
         'clientes': clientes_pagina,
@@ -393,7 +407,9 @@ def clientes(request):
         'total_compras': total_compras,
         'es_admin': es_administrador(request.user),
         'rol_usuario': rol_usuario(request.user),
-        'query_params': query_params.urlencode(),
+        'query_params': query_params,
+        'per_page': per_page,
+        'per_page_options': OPCIONES_POR_PAGINA,
     })
 
 
@@ -416,9 +432,11 @@ def detalle_cliente(request, cliente_id):
     unidades_compradas = ventas_cliente.aggregate(total=Sum('cantidad'))['total'] or 0
     productos_diferentes = ventas_cliente.values('producto_id').distinct().count()
 
-    paginator = Paginator(ventas_cliente, 10)
+    per_page, per_page_int = obtener_por_pagina(request)
+    paginator = Paginator(ventas_cliente, per_page_int)
     pagina = request.GET.get('page')
     ventas_pagina = paginator.get_page(pagina)
+    query_params = parametros_sin_pagina(request, ['page'])
 
     return render(request, 'clientes/detalle_cliente.html', {
         'cliente': cliente,
@@ -429,6 +447,9 @@ def detalle_cliente(request, cliente_id):
         'productos_diferentes': productos_diferentes,
         'es_admin': es_administrador(request.user),
         'rol_usuario': rol_usuario(request.user),
+        'query_params': query_params,
+        'per_page': per_page,
+        'per_page_options': OPCIONES_POR_PAGINA,
     })
 
 @login_required(login_url='login')
@@ -439,18 +460,20 @@ def editar_cliente(request, cliente_id):
     if request.method == 'POST':
         documento = request.POST.get('documento', '').strip()
         nombre = request.POST.get('nombre', '').strip()
+        apellido = request.POST.get('apellido', '').strip()
         correo = request.POST.get('correo', '').strip()
         telefono = request.POST.get('telefono', '').strip()
 
-        if not documento or not nombre:
-            messages.error(request, 'Documento y nombre son obligatorios.')
+        if not documento or not nombre or not apellido:
+            messages.error(request, 'Documento, nombre y apellido son obligatorios.')
             return redirect('editar_cliente', cliente_id=cliente.id)
 
         cliente.documento = documento
         cliente.nombre = nombre
+        cliente.apellido = apellido
         cliente.correo = correo or None
         cliente.telefono = telefono or None
-        cliente.save(update_fields=['documento', 'nombre', 'correo', 'telefono'])
+        cliente.save(update_fields=['documento', 'nombre', 'apellido', 'correo', 'telefono'])
 
         messages.success(request, 'Cliente actualizado correctamente.')
         return redirect('clientes')
@@ -551,7 +574,7 @@ def exportar_ventas(request):
             float(venta.total or 0),
             venta.vendedor.username if venta.vendedor else '',
             venta.cliente.documento if venta.cliente else '',
-            venta.cliente.nombre if venta.cliente else 'Sin cliente',
+            venta.cliente.nombre_completo if venta.cliente else 'Sin cliente',
             venta.cliente.correo if venta.cliente and venta.cliente.correo else '',
         ])
 

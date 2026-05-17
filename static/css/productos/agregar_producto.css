@@ -440,3 +440,146 @@ input[type="file"].form-control {
         grid-template-columns: 1fr;
     }
 }
+.input-icon .form-select {
+    padding-left: 46px;
+}
+
+.size-mode-card {
+    margin: 18px 0;
+    padding: 20px;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: #f9fafb;
+}
+
+.size-mode-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    margin-bottom: 8px !important;
+}
+
+.size-mode-toggle input {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--accent);
+}
+
+.size-mode-toggle span {
+    color: var(--primary);
+    font-size: 16px;
+    font-weight: 900;
+}
+
+.size-mode-card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.size-variants-box {
+    display: none;
+    margin-top: 18px;
+}
+
+.size-variants-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+.size-variants-header strong {
+    color: var(--primary);
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.size-add-btn,
+.size-remove-btn {
+    border: none;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.size-add-btn {
+    min-height: 42px;
+    padding: 0 16px;
+    background: var(--accent);
+    color: #ffffff;
+}
+
+.size-add-btn:hover {
+    background: var(--accent-dark);
+    transform: translateY(-2px);
+}
+
+.size-variants-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.size-variant-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 52px;
+    gap: 12px;
+    align-items: end;
+}
+
+.size-variant-row label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.size-remove-btn {
+    width: 52px;
+    height: 52px;
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.size-remove-btn i {
+    font-size: 24px;
+}
+
+.size-remove-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.size-remove-btn:not(:disabled):hover {
+    background: #fecaca;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .size-variants-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .size-add-btn {
+        width: 100%;
+    }
+
+    .size-variant-row {
+        grid-template-columns: 1fr;
+    }
+
+    .size-remove-btn {
+        width: 100%;
+    }
+}

@@ -52,6 +52,11 @@
             </section>
 
             <section class="form-group">
+                <label>Apellido</label>
+                <input type="text" name="apellido" value="{{ cliente.apellido }}" required>
+            </section>
+
+            <section class="form-group">
                 <label>Correo</label>
                 <input type="email" name="correo" value="{{ cliente.correo|default:'' }}">
             </section>

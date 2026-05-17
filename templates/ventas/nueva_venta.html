@@ -196,10 +196,10 @@
                                         {% with cliente_id_text=cliente.id|stringformat:"s" %}
                                         <option
                                             value="{{ cliente.id }}"
-                                            data-search="{{ cliente.nombre }} {{ cliente.documento }} {{ cliente.correo|default:'' }}"
+                                            data-search="{{ cliente.nombre_completo }} {{ cliente.documento }} {{ cliente.correo|default:'' }}"
                                             {% if cliente_id_seleccionado == cliente_id_text %}selected{% endif %}
                                         >
-                                            {{ cliente.nombre }} · {{ cliente.documento }}
+                                            {{ cliente.nombre_completo }} · {{ cliente.documento }}
                                         </option>
                                         {% endwith %}
                                     {% empty %}
@@ -223,11 +223,20 @@
                         </section>
 
                         <section class="vp-field">
-                            <label for="nombre_cliente">Nombre completo</label>
+                            <label for="nombre_cliente">Nombre</label>
 
                             <section class="vp-control">
                                 <i class='bx bx-user'></i>
                                 <input type="text" name="nombre_cliente" id="nombre_cliente" value="{{ nombre_cliente }}" placeholder="Nombre del cliente">
+                            </section>
+                        </section>
+
+                        <section class="vp-field">
+                            <label for="apellido_cliente">Apellido</label>
+
+                            <section class="vp-control">
+                                <i class='bx bx-user'></i>
+                                <input type="text" name="apellido_cliente" id="apellido_cliente" value="{{ apellido_cliente }}" placeholder="Apellido del cliente">
                             </section>
                         </section>
 
@@ -347,7 +356,7 @@
                     <span>{{ venta.cantidad|formato_numero }} unidad(es) · {{ venta.fecha|date:"d/m/Y h:i A" }}</span>
 
                     {% if venta.cliente %}
-                    <small>Cliente: {{ venta.cliente.nombre }}</small>
+                    <small>Cliente: {{ venta.cliente.nombre_completo }}</small>
                     {% else %}
                     <small>Cliente: sin cliente</small>
                     {% endif %}
