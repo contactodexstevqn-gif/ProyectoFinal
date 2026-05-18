@@ -10,10 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
-import os
 from pathlib import Path
-
 from decouple import config
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,12 +22,29 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-@zfyov-&690&znb7cr*7#dh-t0oj!j=7^3f#d-pngihvcjmqlm'
+SECRET_KEY = config(
+    'SECRET_KEY',
+    default='django-insecure-@zfyov-&690&znb7cr*7#dh-t0oj!j=7^3f#d-pngihvcjmqlm'
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = ['*']
+
+
+CLOUDINARY_URL = config('CLOUDINARY_URL', default='')
+CLOUDINARY_CLOUD_NAME = config('CLOUDINARY_CLOUD_NAME', default='')
+CLOUDINARY_API_KEY = config('CLOUDINARY_API_KEY', default='')
+CLOUDINARY_API_SECRET = config('CLOUDINARY_API_SECRET', default='')
+
+USAR_CLOUDINARY = bool(
+    CLOUDINARY_URL or (
+        CLOUDINARY_CLOUD_NAME and
+        CLOUDINARY_API_KEY and
+        CLOUDINARY_API_SECRET
+    )
+)
 
 
 # Application definition
@@ -47,18 +63,6 @@ INSTALLED_APPS = [
     'reportes',
 ]
 
-CLOUDINARY_URL = config('CLOUDINARY_URL', default='')
-CLOUDINARY_CLOUD_NAME = config('CLOUDINARY_CLOUD_NAME', default='')
-CLOUDINARY_API_KEY = config('CLOUDINARY_API_KEY', default='')
-CLOUDINARY_API_SECRET = config('CLOUDINARY_API_SECRET', default='')
-USAR_CLOUDINARY = bool(
-    CLOUDINARY_URL or (
-        CLOUDINARY_CLOUD_NAME and
-        CLOUDINARY_API_KEY and
-        CLOUDINARY_API_SECRET
-    )
-)
-
 if USAR_CLOUDINARY:
     INSTALLED_APPS.insert(0, 'cloudinary_storage')
     INSTALLED_APPS.insert(1, 'cloudinary')
@@ -66,12 +70,11 @@ if USAR_CLOUDINARY:
     if CLOUDINARY_URL:
         os.environ['CLOUDINARY_URL'] = CLOUDINARY_URL
 
-    if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
-        CLOUDINARY_STORAGE = {
-            'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
-            'API_KEY': CLOUDINARY_API_KEY,
-            'API_SECRET': CLOUDINARY_API_SECRET,
-        }
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
+        'API_KEY': CLOUDINARY_API_KEY,
+        'API_SECRET': CLOUDINARY_API_SECRET,
+    }
 
 
 MIDDLEWARE = [
@@ -172,7 +175,7 @@ if USAR_CLOUDINARY:
             'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage',
         },
         'staticfiles': {
-            'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+            'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
         },
     }
 else:
@@ -181,7 +184,7 @@ else:
             'BACKEND': 'django.core.files.storage.FileSystemStorage',
         },
         'staticfiles': {
-            'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+            'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
         },
     }
 
