@@ -10,9 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
-from pathlib import Path
-from decouple import config
 import os
+from pathlib import Path
+
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -47,20 +48,31 @@ INSTALLED_APPS = [
 ]
 
 CLOUDINARY_URL = config('CLOUDINARY_URL', default='')
+CLOUDINARY_CLOUD_NAME = config('CLOUDINARY_CLOUD_NAME', default='')
+CLOUDINARY_API_KEY = config('CLOUDINARY_API_KEY', default='')
+CLOUDINARY_API_SECRET = config('CLOUDINARY_API_SECRET', default='')
+USAR_CLOUDINARY = bool(
+    CLOUDINARY_URL or (
+        CLOUDINARY_CLOUD_NAME and
+        CLOUDINARY_API_KEY and
+        CLOUDINARY_API_SECRET
+    )
+)
 
-if CLOUDINARY_URL:
-    os.environ['CLOUDINARY_URL'] = CLOUDINARY_URL
+if USAR_CLOUDINARY:
+    INSTALLED_APPS.insert(0, 'cloudinary_storage')
+    INSTALLED_APPS.insert(1, 'cloudinary')
 
-    INSTALLED_APPS += [
-        'cloudinary_storage',
-        'cloudinary',
-    ]
+    if CLOUDINARY_URL:
+        os.environ['CLOUDINARY_URL'] = CLOUDINARY_URL
 
-    CLOUDINARY_STORAGE = {
-        'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default=''),
-        'API_KEY': config('CLOUDINARY_API_KEY', default=''),
-        'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
-    }
+    if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
+        CLOUDINARY_STORAGE = {
+            'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
+            'API_KEY': CLOUDINARY_API_KEY,
+            'API_SECRET': CLOUDINARY_API_SECRET,
+        }
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -154,7 +166,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-if CLOUDINARY_URL:
+if USAR_CLOUDINARY:
     STORAGES = {
         'default': {
             'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage',
