@@ -413,7 +413,7 @@
 }
 
 .inventory-products-table {
-    min-width: 980px;
+    min-width: 1160px;
 }
 
 .inventory-products-table th:nth-child(1),
@@ -423,18 +423,18 @@
 
 .inventory-products-table th:nth-child(2),
 .inventory-products-table td:nth-child(2) {
-    width: 13%;
+    width: 12%;
 }
 
 .inventory-products-table th:nth-child(3),
 .inventory-products-table td:nth-child(3) {
-    width: 8%;
+    width: 11%;
     text-align: center;
 }
 
 .inventory-products-table th:nth-child(4),
 .inventory-products-table td:nth-child(4) {
-    width: 9%;
+    width: 13%;
 }
 
 .inventory-products-table th:nth-child(5),
@@ -444,14 +444,36 @@
 
 .inventory-products-table th:nth-child(6),
 .inventory-products-table td:nth-child(6) {
-    width: 12%;
+    width: 11%;
     text-align: center;
 }
 
 .inventory-products-table th:nth-child(7),
 .inventory-products-table td:nth-child(7) {
-    width: 18%;
+    width: 13%;
     text-align: center;
+}
+
+.inventory-products-table .product-pill {
+    min-width: 72px;
+    min-height: 44px;
+    height: 44px;
+    padding: 0 16px;
+    white-space: nowrap;
+    overflow-wrap: normal;
+    line-height: 1;
+}
+
+.inventory-products-table .color-text {
+    display: block;
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.inventory-products-table .price-cell {
+    min-width: 130px;
 }
 
 .movement-badge {
