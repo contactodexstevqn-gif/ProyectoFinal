@@ -32,7 +32,7 @@
     </header>
 
     <nav class="header-actions reportes-actions">
-        <a href="#" class="btn-outline">
+        <a href="{% url 'reporte_excel' %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}" class="btn-primary">
             <i class='bx bx-file'></i>
             Exportar Excel
         </a>
