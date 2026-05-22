@@ -1,3 +1,6 @@
+import logging
+from smtplib import SMTPException
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -11,9 +14,6 @@ from django.urls import reverse
 from django.utils import timezone
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
-
-import logging
-from smtplib import SMTPException
 
 from backend.pagination import OPCIONES_POR_PAGINA, obtener_por_pagina, parametros_sin_pagina
 from backend.permissions import (
@@ -33,7 +33,8 @@ def iniciarSesion(request):
         nombreUsuario = request.POST.get('username')
         contraseña = request.POST.get('password')
 
-        usuario = authenticate(request, username=nombreUsuario, password=contraseña)
+        usuario = authenticate(
+            request, username=nombreUsuario, password=contraseña)
 
         if usuario is not None:
             login(request, usuario)
@@ -78,7 +79,8 @@ def recuperarContrasena(request):
                 reverse('editar_vendedor', args=[primer_usuario.id])
             )
 
-        fecha_solicitud = timezone.localtime(timezone.now()).strftime('%d/%m/%Y %I:%M %p')
+        fecha_solicitud = timezone.localtime(
+            timezone.now()).strftime('%d/%m/%Y %I:%M %p')
 
         ip_cliente = request.META.get(
             'HTTP_X_FORWARDED_FOR',
@@ -112,7 +114,7 @@ def recuperarContrasena(request):
 
         if not correo_admin or not correo_remitente:
             logger.error(
-                'No se pudo enviar recuperación: falta ADMIN_RECOVERY_EMAIL, '
+                'No se pudo enviar recuperacion: falta ADMIN_RECOVERY_EMAIL, '
                 'DEFAULT_FROM_EMAIL o EMAIL_HOST_USER.'
             )
             messages.error(
@@ -124,14 +126,14 @@ def recuperarContrasena(request):
         try:
             send_mail(
                 asunto,
-                 mensaje,
+                mensaje,
                 correo_remitente,
                 [correo_admin],
                 fail_silently=False,
             )
         except (SMTPException, OSError, TimeoutError) as error:
             logger.exception(
-                'Error enviando correo de recuperación de contraseña: %s',
+                'Error enviando correo de recuperacion de contraseña: %s',
                 error
             )
             messages.error(
@@ -147,6 +149,7 @@ def recuperarContrasena(request):
         return redirect('recuperar_contrasena')
 
     return render(request, 'public/recuperar_contrasena.html')
+
 
 @login_required
 @admin_required
@@ -210,6 +213,7 @@ def crearVendedor(request):
         'rol_usuario': rol_usuario(request.user),
     })
 
+
 @login_required
 @admin_required
 def editarVendedor(request, usuario_id):
@@ -222,12 +226,15 @@ def editarVendedor(request, usuario_id):
             cambio_contrasena = bool(form.cleaned_data.get('nueva_contrasena'))
             form.save()
             if cambio_contrasena:
-                messages.success(request, f'El vendedor {vendedor.username} fue actualizado y su contraseña fue cambiada correctamente.')
+                messages.success(
+                    request, f'El vendedor {vendedor.username} fue actualizado y su contraseña fue cambiada correctamente.')
             else:
-                messages.success(request, f'El vendedor {vendedor.username} fue actualizado correctamente.')
+                messages.success(
+                    request, f'El vendedor {vendedor.username} fue actualizado correctamente.')
             return redirect('usuarios')
 
-        messages.error(request, 'No se pudo actualizar el vendedor. Revisa los datos ingresados.')
+        messages.error(
+            request, 'No se pudo actualizar el vendedor. Revisa los datos ingresados.')
     else:
         form = VendedorEditForm(instance=vendedor)
 
@@ -274,7 +281,8 @@ def exportarVendedoresExcel(request):
     for usuario in usuarios:
         nombre = usuario.get_full_name() or 'Sin nombre'
         ultimo_acceso = (
-            timezone.localtime(usuario.last_login).strftime('%d/%m/%Y %I:%M %p')
+            timezone.localtime(usuario.last_login).strftime(
+                '%d/%m/%Y %I:%M %p')
             if usuario.last_login else 'Sin acceso'
         )
 
@@ -283,7 +291,8 @@ def exportarVendedoresExcel(request):
             usuario.username,
             usuario.email or 'Sin correo',
             'Activo' if usuario.is_active else 'Inactivo',
-            timezone.localtime(usuario.date_joined).strftime('%d/%m/%Y %I:%M %p'),
+            timezone.localtime(usuario.date_joined).strftime(
+                '%d/%m/%Y %I:%M %p'),
             ultimo_acceso,
         ])
 
@@ -310,19 +319,22 @@ def exportarVendedoresExcel(request):
         cell.fill = resumen_fill
         cell.font = resumen_font
         cell.alignment = left
-        cell.border = Border(left=borde_color, right=borde_color, top=borde_color, bottom=borde_color)
+        cell.border = Border(left=borde_color, right=borde_color,
+                             top=borde_color, bottom=borde_color)
 
     for cell in ws[4]:
         cell.fill = encabezado_fill
         cell.font = encabezado_font
         cell.alignment = center
-        cell.border = Border(left=borde_color, right=borde_color, top=borde_color, bottom=borde_color)
+        cell.border = Border(left=borde_color, right=borde_color,
+                             top=borde_color, bottom=borde_color)
 
     for row in ws.iter_rows(min_row=5):
         for cell in row:
             cell.font = texto_font
             cell.alignment = left
-            cell.border = Border(left=borde_color, right=borde_color, top=borde_color, bottom=borde_color)
+            cell.border = Border(
+                left=borde_color, right=borde_color, top=borde_color, bottom=borde_color)
 
     anchos = {
         'A': 30,
@@ -347,6 +359,7 @@ def exportarVendedoresExcel(request):
     wb.save(response)
     return response
 
+
 @login_required
 @admin_required
 def cambiarEstadoUsuario(request, usuario_id):
@@ -363,8 +376,10 @@ def cambiarEstadoUsuario(request, usuario_id):
     usuario.save(update_fields=['is_active'])
 
     if usuario.is_active:
-        messages.success(request, f'El usuario {usuario.username} fue activado correctamente.')
+        messages.success(
+            request, f'El usuario {usuario.username} fue activado correctamente.')
     else:
-        messages.success(request, f'El usuario {usuario.username} fue desactivado correctamente.')
+        messages.success(
+            request, f'El usuario {usuario.username} fue desactivado correctamente.')
 
     return redirect('usuarios')
