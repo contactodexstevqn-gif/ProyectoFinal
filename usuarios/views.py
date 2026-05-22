@@ -124,11 +124,10 @@ def recuperarContrasena(request):
         try:
             send_mail(
                 asunto,
-                mensaje,
+                 mensaje,
                 correo_remitente,
                 [correo_admin],
                 fail_silently=False,
-                timeout=10,
             )
         except (SMTPException, OSError, TimeoutError) as error:
             logger.exception(
