@@ -80,7 +80,8 @@ def recuperarContrasena(request):
             )
 
         fecha_solicitud = timezone.localtime(
-            timezone.now()).strftime('%d/%m/%Y %I:%M %p')
+            timezone.now()
+        ).strftime('%d/%m/%Y %I:%M %p')
 
         ip_cliente = request.META.get(
             'HTTP_X_FORWARDED_FOR',
@@ -149,7 +150,6 @@ def recuperarContrasena(request):
         return redirect('recuperar_contrasena')
 
     return render(request, 'public/recuperar_contrasena.html')
-
 
 @login_required
 @admin_required
