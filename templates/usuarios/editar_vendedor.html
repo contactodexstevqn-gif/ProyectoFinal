@@ -93,8 +93,30 @@
                 </section>
 
                 <section class="password-tips">
-                    <i class='bx bx-info-circle'></i>
-                    <p>Este formulario actualiza los datos del vendedor, no cambia su contraseña.</p>
+                    <i class='bx bx-lock-alt'></i>
+                    <p>Para cambiar la contraseña, escribe una nueva y confírmala. Si dejas estos campos vacíos, se conservará la contraseña actual.</p>
+                </section>
+
+                <section class="form-grid">
+
+                    <section class="form-group">
+                        <label for="{{ form.nueva_contrasena.id_for_label }}">Nueva contraseña</label>
+                        <section class="input-box">
+                            <i class='bx bx-lock-alt'></i>
+                            {{ form.nueva_contrasena }}
+                        </section>
+                        {{ form.nueva_contrasena.errors }}
+                    </section>
+
+                    <section class="form-group">
+                        <label for="{{ form.confirmar_contrasena.id_for_label }}">Confirmar contraseña</label>
+                        <section class="input-box">
+                            <i class='bx bx-check-shield'></i>
+                            {{ form.confirmar_contrasena }}
+                        </section>
+                        {{ form.confirmar_contrasena.errors }}
+                    </section>
+
                 </section>
 
                 <footer class="form-actions">
