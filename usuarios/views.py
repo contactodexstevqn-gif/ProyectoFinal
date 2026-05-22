@@ -3,7 +3,11 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group, User
 from django.core.paginator import Paginator
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 
 from backend.pagination import OPCIONES_POR_PAGINA, obtener_por_pagina, parametros_sin_pagina
 from backend.permissions import (
@@ -124,6 +128,115 @@ def editarVendedor(request, usuario_id):
         'es_admin': es_administrador(request.user),
         'rol_usuario': rol_usuario(request.user),
     })
+
+
+@login_required
+@admin_required
+def exportarVendedoresExcel(request):
+    usuarios = User.objects.filter(is_superuser=False).order_by('-date_joined')
+
+    total_usuarios = usuarios.count()
+    usuarios_activos = usuarios.filter(is_active=True).count()
+    usuarios_inactivos = usuarios.filter(is_active=False).count()
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Vendedores'
+
+    encabezados = [
+        'Nombre',
+        'Usuario',
+        'Correo',
+        'Estado',
+        'Fecha de registro',
+        'Ultimo acceso'
+    ]
+
+    ws.append(['Listado de vendedores'])
+    ws.append([
+        f'Total: {total_usuarios}',
+        f'Activos: {usuarios_activos}',
+        f'Inactivos: {usuarios_inactivos}',
+        f'Generado: {timezone.localtime(timezone.now()).strftime("%d/%m/%Y %I:%M %p")}'
+    ])
+    ws.append([])
+    ws.append(encabezados)
+
+    for usuario in usuarios:
+        nombre = usuario.get_full_name() or 'Sin nombre'
+        ultimo_acceso = (
+            timezone.localtime(usuario.last_login).strftime('%d/%m/%Y %I:%M %p')
+            if usuario.last_login else 'Sin acceso'
+        )
+
+        ws.append([
+            nombre,
+            usuario.username,
+            usuario.email or 'Sin correo',
+            'Activo' if usuario.is_active else 'Inactivo',
+            timezone.localtime(usuario.date_joined).strftime('%d/%m/%Y %I:%M %p'),
+            ultimo_acceso,
+        ])
+
+    titulo_fill = PatternFill('solid', fgColor='D41473')
+    encabezado_fill = PatternFill('solid', fgColor='FCE7F3')
+    resumen_fill = PatternFill('solid', fgColor='FFF1F8')
+    borde_color = Side(style='thin', color='E5E7EB')
+
+    titulo_font = Font(color='FFFFFF', bold=True, size=15)
+    encabezado_font = Font(color='111827', bold=True)
+    resumen_font = Font(color='4B5563', bold=True)
+    texto_font = Font(color='111827')
+
+    center = Alignment(horizontal='center', vertical='center')
+    left = Alignment(horizontal='left', vertical='center')
+
+    ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=6)
+    ws['A1'].fill = titulo_fill
+    ws['A1'].font = titulo_font
+    ws['A1'].alignment = center
+    ws.row_dimensions[1].height = 28
+
+    for cell in ws[2]:
+        cell.fill = resumen_fill
+        cell.font = resumen_font
+        cell.alignment = left
+        cell.border = Border(left=borde_color, right=borde_color, top=borde_color, bottom=borde_color)
+
+    for cell in ws[4]:
+        cell.fill = encabezado_fill
+        cell.font = encabezado_font
+        cell.alignment = center
+        cell.border = Border(left=borde_color, right=borde_color, top=borde_color, bottom=borde_color)
+
+    for row in ws.iter_rows(min_row=5):
+        for cell in row:
+            cell.font = texto_font
+            cell.alignment = left
+            cell.border = Border(left=borde_color, right=borde_color, top=borde_color, bottom=borde_color)
+
+    anchos = {
+        'A': 30,
+        'B': 22,
+        'C': 32,
+        'D': 14,
+        'E': 24,
+        'F': 24,
+    }
+
+    for columna, ancho in anchos.items():
+        ws.column_dimensions[columna].width = ancho
+
+    ws.freeze_panes = 'A5'
+    ws.auto_filter.ref = f'A4:F{ws.max_row}'
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="vendedores.xlsx"'
+
+    wb.save(response)
+    return response
 
 @login_required
 @admin_required

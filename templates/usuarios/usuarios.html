@@ -16,10 +16,10 @@
     </header>
 
     <nav class="header-actions">
-        <button type="button" class="btn-outline" id="btnExportar">
+        <a href="{% url 'exportar_vendedores_excel' %}" class="btn-primary">
             <i class='bx bx-file'></i>
-            Exportar
-        </button>
+            Exportar Excel
+        </a>
 
         <a href="{% url 'crear_vendedor' %}" class="btn-primary">
             <i class='bx bx-plus'></i>

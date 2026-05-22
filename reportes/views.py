@@ -8,6 +8,8 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
 from django.utils.dateparse import parse_date
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.lib.pagesizes import landscape, letter
@@ -566,6 +568,230 @@ def reportes(request):
         'rol_usuario': rol_usuario(request.user),
     })
 
+
+
+@login_required(login_url='login')
+@admin_required
+def exportar_reporte_excel(request):
+    datos = obtener_datos_reportes(request)
+    ventas = datos['ventas'].order_by('-fecha')
+    filtros = datos['filtros']
+
+    vendedor_nombre = 'Todos'
+    categoria_nombre = 'Todas'
+    producto_nombre = 'Todos'
+
+    if filtros['vendedor_id']:
+        vendedor = User.objects.filter(id=filtros['vendedor_id']).first()
+        if vendedor:
+            vendedor_nombre = vendedor.get_full_name() or vendedor.username
+
+    if filtros['categoria_id']:
+        categoria = Categoria.objects.filter(id=filtros['categoria_id']).first()
+        if categoria:
+            categoria_nombre = categoria.nombre
+
+    if filtros['producto_id']:
+        producto = Producto.objects.filter(id=filtros['producto_id']).first()
+        if producto:
+            producto_nombre = producto.nombre
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Reporte'
+
+    titulo_fill = PatternFill('solid', fgColor='D41473')
+    encabezado_fill = PatternFill('solid', fgColor='FCE7F3')
+    resumen_fill = PatternFill('solid', fgColor='FFF1F8')
+    borde_color = Side(style='thin', color='E5E7EB')
+
+    titulo_font = Font(color='FFFFFF', bold=True, size=15)
+    encabezado_font = Font(color='111827', bold=True)
+    resumen_font = Font(color='4B5563', bold=True)
+    texto_font = Font(color='111827')
+
+    center = Alignment(horizontal='center', vertical='center')
+    left = Alignment(horizontal='left', vertical='center')
+
+    ws.append(['Reporte general'])
+    ws.append([
+        f"Desde: {filtros['fecha_inicio'] or 'Todas'}",
+        f"Hasta: {filtros['fecha_fin'] or 'Todas'}",
+        f"Vendedor: {vendedor_nombre}",
+        f"Categoria: {categoria_nombre}",
+        f"Producto: {producto_nombre}",
+        f"Tipo: {filtros['tipo_reporte'] or 'general'}"
+    ])
+    ws.append([])
+    ws.append(['Indicador', 'Valor'])
+    ws.append(['Ventas totales', float(datos['ventas_totales'] or 0)])
+    ws.append(['Ingresos del mes', float(datos['ingresos_mes'] or 0)])
+    ws.append(['Productos vendidos', datos['productos_vendidos'] or 0])
+    ws.append(['Clientes nuevos', datos['clientes_nuevos'] or 0])
+    ws.append(['Ticket promedio', float(datos['ticket_promedio'] or 0)])
+    ws.append(['Categoria top', datos['categoria_top']])
+    ws.append(['Vendedor top', datos['vendedor_top']])
+    ws.append(['Productos con stock critico', datos['productos_stock_critico']])
+
+    ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=6)
+    ws['A1'].fill = titulo_fill
+    ws['A1'].font = titulo_font
+    ws['A1'].alignment = center
+    ws.row_dimensions[1].height = 28
+
+    for cell in ws[2]:
+        cell.fill = resumen_fill
+        cell.font = resumen_font
+        cell.alignment = left
+        cell.border = Border(left=borde_color, right=borde_color, top=borde_color, bottom=borde_color)
+
+    for cell in ws[4]:
+        cell.fill = encabezado_fill
+        cell.font = encabezado_font
+        cell.alignment = center
+        cell.border = Border(left=borde_color, right=borde_color, top=borde_color, bottom=borde_color)
+
+    for row in ws.iter_rows(min_row=5, max_row=12):
+        for cell in row:
+            cell.font = texto_font
+            cell.alignment = left
+            cell.border = Border(left=borde_color, right=borde_color, top=borde_color, bottom=borde_color)
+
+    for cell in ws['B'][4:12]:
+        if isinstance(cell.value, (int, float)):
+            cell.number_format = '"$"#,##0'
+
+    ws.column_dimensions['A'].width = 30
+    ws.column_dimensions['B'].width = 28
+    ws.column_dimensions['C'].width = 28
+    ws.column_dimensions['D'].width = 28
+    ws.column_dimensions['E'].width = 28
+    ws.column_dimensions['F'].width = 24
+
+    ventas_ws = wb.create_sheet('Ventas')
+    encabezados_ventas = [
+        'Fecha', 'Producto', 'Categoria', 'Color', 'Talla', 'Cantidad', 'Total',
+        'Vendedor', 'Documento cliente', 'Cliente', 'Correo cliente'
+    ]
+    ventas_ws.append(['Detalle de ventas'])
+    ventas_ws.append([
+        f"Desde: {filtros['fecha_inicio'] or 'Todas'}",
+        f"Hasta: {filtros['fecha_fin'] or 'Todas'}",
+        f"Vendedor: {vendedor_nombre}",
+        f"Categoria: {categoria_nombre}",
+        f"Producto: {producto_nombre}",
+        f"Registros: {ventas.count()}"
+    ])
+    ventas_ws.append([])
+    ventas_ws.append(encabezados_ventas)
+
+    for venta in ventas:
+        ventas_ws.append([
+            timezone.localtime(venta.fecha).strftime('%d/%m/%Y %I:%M %p'),
+            venta.producto.nombre,
+            venta.producto.categoria.nombre if venta.producto.categoria else 'Sin categoria',
+            venta.producto.color,
+            venta.producto.talla,
+            venta.cantidad,
+            float(venta.total or 0),
+            venta.vendedor.username if venta.vendedor else '',
+            venta.cliente.documento if venta.cliente else '',
+            venta.cliente.nombre_completo if venta.cliente else 'Sin cliente',
+            venta.cliente.correo if venta.cliente and venta.cliente.correo else '',
+        ])
+
+    ventas_ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=11)
+    ventas_ws['A1'].fill = titulo_fill
+    ventas_ws['A1'].font = titulo_font
+    ventas_ws['A1'].alignment = center
+    ventas_ws.row_dimensions[1].height = 28
+
+    for cell in ventas_ws[2]:
+        cell.fill = resumen_fill
+        cell.font = resumen_font
+        cell.alignment = left
+        cell.border = Border(left=borde_color, right=borde_color, top=borde_color, bottom=borde_color)
+
+    for cell in ventas_ws[4]:
+        cell.fill = encabezado_fill
+        cell.font = encabezado_font
+        cell.alignment = center
+        cell.border = Border(left=borde_color, right=borde_color, top=borde_color, bottom=borde_color)
+
+    for row in ventas_ws.iter_rows(min_row=5):
+        for cell in row:
+            cell.font = texto_font
+            cell.alignment = left
+            cell.border = Border(left=borde_color, right=borde_color, top=borde_color, bottom=borde_color)
+
+    for cell in ventas_ws['G'][4:]:
+        cell.number_format = '"$"#,##0'
+
+    anchos_ventas = {
+        'A': 23, 'B': 28, 'C': 22, 'D': 16, 'E': 12, 'F': 12,
+        'G': 16, 'H': 22, 'I': 20, 'J': 28, 'K': 30,
+    }
+    for columna, ancho in anchos_ventas.items():
+        ventas_ws.column_dimensions[columna].width = ancho
+
+    ventas_ws.freeze_panes = 'A5'
+    ventas_ws.auto_filter.ref = f'A4:K{ventas_ws.max_row}'
+
+    top_ws = wb.create_sheet('Top productos')
+    top_ws.append(['Top productos'])
+    top_ws.append(['Producto', 'Cantidad', 'Total'])
+    for producto in datos['top_productos']:
+        top_ws.append([producto['nombre'], producto['cantidad'], float(producto['total'] or 0)])
+
+    top_ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=3)
+    top_ws['A1'].fill = titulo_fill
+    top_ws['A1'].font = titulo_font
+    top_ws['A1'].alignment = center
+    for cell in top_ws[2]:
+        cell.fill = encabezado_fill
+        cell.font = encabezado_font
+        cell.alignment = center
+    for row in top_ws.iter_rows(min_row=3):
+        for cell in row:
+            cell.font = texto_font
+            cell.alignment = left
+    for cell in top_ws['C'][2:]:
+        cell.number_format = '"$"#,##0'
+    top_ws.column_dimensions['A'].width = 32
+    top_ws.column_dimensions['B'].width = 14
+    top_ws.column_dimensions['C'].width = 18
+
+    categorias_ws = wb.create_sheet('Categorias')
+    categorias_ws.append(['Ventas por categoria'])
+    categorias_ws.append(['Categoria', 'Total', 'Porcentaje'])
+    for categoria in datos['ventas_categorias']:
+        categorias_ws.append([categoria['nombre'], float(categoria['total'] or 0), f"{categoria['porcentaje']}%"])
+
+    categorias_ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=3)
+    categorias_ws['A1'].fill = titulo_fill
+    categorias_ws['A1'].font = titulo_font
+    categorias_ws['A1'].alignment = center
+    for cell in categorias_ws[2]:
+        cell.fill = encabezado_fill
+        cell.font = encabezado_font
+        cell.alignment = center
+    for row in categorias_ws.iter_rows(min_row=3):
+        for cell in row:
+            cell.font = texto_font
+            cell.alignment = left
+    for cell in categorias_ws['B'][2:]:
+        cell.number_format = '"$"#,##0'
+    categorias_ws.column_dimensions['A'].width = 32
+    categorias_ws.column_dimensions['B'].width = 18
+    categorias_ws.column_dimensions['C'].width = 16
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="reporte_general.xlsx"'
+
+    wb.save(response)
+    return response
 
 @login_required(login_url='login')
 @admin_required
