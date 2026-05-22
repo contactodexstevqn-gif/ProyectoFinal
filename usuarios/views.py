@@ -12,6 +12,9 @@ from django.utils import timezone
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 
+import logging
+from smtplib import SMTPException
+
 from backend.pagination import OPCIONES_POR_PAGINA, obtener_por_pagina, parametros_sin_pagina
 from backend.permissions import (
     GRUPO_VENDEDOR,
@@ -21,6 +24,8 @@ from backend.permissions import (
     rol_usuario,
 )
 from .forms import VendedorForm, VendedorEditForm
+
+logger = logging.getLogger(__name__)
 
 
 def iniciarSesion(request):
@@ -59,15 +64,26 @@ def recuperarContrasena(request):
 
         usuarios = User.objects.filter(email__iexact=correo)
         existe_cuenta = usuarios.exists()
-        usuarios_encontrados = ', '.join(usuario.username for usuario in usuarios) if existe_cuenta else 'No registrado'
+
+        usuarios_encontrados = (
+            ', '.join(usuario.username for usuario in usuarios)
+            if existe_cuenta
+            else 'No registrado'
+        )
+
         enlace_edicion = 'No disponible'
         if existe_cuenta:
             primer_usuario = usuarios.first()
             enlace_edicion = request.build_absolute_uri(
                 reverse('editar_vendedor', args=[primer_usuario.id])
             )
+
         fecha_solicitud = timezone.localtime(timezone.now()).strftime('%d/%m/%Y %I:%M %p')
-        ip_cliente = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', 'No disponible'))
+
+        ip_cliente = request.META.get(
+            'HTTP_X_FORWARDED_FOR',
+            request.META.get('REMOTE_ADDR', 'No disponible')
+        )
         if ',' in ip_cliente:
             ip_cliente = ip_cliente.split(',')[0].strip()
 
@@ -85,24 +101,53 @@ def recuperarContrasena(request):
             'desde Vendedores > Editar vendedor.'
         )
 
-        correo_admin = getattr(settings, 'ADMIN_RECOVERY_EMAIL', '') or getattr(settings, 'EMAIL_HOST_USER', '')
-        correo_remitente = getattr(settings, 'DEFAULT_FROM_EMAIL', '') or getattr(settings, 'EMAIL_HOST_USER', '')
+        correo_admin = (
+            getattr(settings, 'ADMIN_RECOVERY_EMAIL', '')
+            or getattr(settings, 'EMAIL_HOST_USER', '')
+        )
+        correo_remitente = (
+            getattr(settings, 'DEFAULT_FROM_EMAIL', '')
+            or getattr(settings, 'EMAIL_HOST_USER', '')
+        )
+
+        if not correo_admin or not correo_remitente:
+            logger.error(
+                'No se pudo enviar recuperación: falta ADMIN_RECOVERY_EMAIL, '
+                'DEFAULT_FROM_EMAIL o EMAIL_HOST_USER.'
+            )
+            messages.error(
+                request,
+                'No se pudo enviar la solicitud en este momento. Contacta al administrador.'
+            )
+            return render(request, 'public/recuperar_contrasena.html')
 
         try:
-            send_mail(asunto, mensaje, correo_remitente, [correo_admin], fail_silently=False)
-            messages.success(
-                request,
-                'Si el correo corresponde a una cuenta registrada, el administrador recibira tu solicitud.'
+            send_mail(
+                asunto,
+                mensaje,
+                correo_remitente,
+                [correo_admin],
+                fail_silently=False,
+                timeout=10,
             )
-            return redirect('recuperar_contrasena')
-        except Exception:
+        except (SMTPException, OSError, TimeoutError) as error:
+            logger.exception(
+                'Error enviando correo de recuperación de contraseña: %s',
+                error
+            )
             messages.error(
                 request,
                 'No se pudo enviar la solicitud en este momento. Intenta nuevamente o contacta al administrador.'
             )
+            return render(request, 'public/recuperar_contrasena.html')
+
+        messages.success(
+            request,
+            'Si el correo corresponde a una cuenta registrada, el administrador recibira tu solicitud.'
+        )
+        return redirect('recuperar_contrasena')
 
     return render(request, 'public/recuperar_contrasena.html')
-
 
 @login_required
 @admin_required
