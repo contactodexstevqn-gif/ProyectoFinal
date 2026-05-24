@@ -4,7 +4,7 @@ from . import views
 urlpatterns = [
     path('login/', views.iniciarSesion, name='login'),
     path('logout/', views.cerrarSesion, name='logout'),
-    path('recuperar-contrasena/', views.recuperarContrasena, name='recuperar_contrasena'),
+    path('recuperar-contrasena/', views.recuperarContraseña, name='recuperar_contrasena'),
     path('usuarios/', views.gestionUsuarios, name='usuarios'),
     path('usuarios/crear/', views.crearVendedor, name='crear_vendedor'),
     path('usuarios/exportar/', views.exportarVendedoresExcel, name='exportar_vendedores_excel'),

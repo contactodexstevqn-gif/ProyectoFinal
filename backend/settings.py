@@ -215,7 +215,20 @@ EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=20, cast=int)
 
 ADMIN_RECOVERY_EMAIL = config(
     'ADMIN_RECOVERY_EMAIL',
-    default=EMAIL_HOST_USER
+    default=''
+)
+
+BREVO_API_KEY = os.environ.get("BREVO_API_KEY") or config(
+    'BREVO_API_KEY',
+    default=''
+)
+BREVO_SENDER_NAME = os.environ.get("BREVO_SENDER_NAME") or config(
+    'BREVO_SENDER_NAME',
+    default='Soporte'
+)
+BREVO_SENDER_EMAIL = os.environ.get("BREVO_SENDER_EMAIL") or config(
+    'BREVO_SENDER_EMAIL',
+    default=''
 )
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

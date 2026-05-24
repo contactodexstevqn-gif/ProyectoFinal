@@ -1,12 +1,11 @@
 import logging
-from smtplib import SMTPException
+from html import escape
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group, User
-from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -24,6 +23,7 @@ from backend.permissions import (
     rol_usuario,
 )
 from .forms import VendedorForm, VendedorEditForm
+from .services import BrevoEmailError, enviar_correo_brevo
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +52,7 @@ def cerrarSesion(request):
     return redirect('login')
 
 
-def recuperarContrasena(request):
+def recuperarContraseña(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
 
@@ -103,53 +103,55 @@ def recuperarContrasena(request):
             'El administrador debe validar la solicitud y, si corresponde, cambiar la contraseña '
             'desde Vendedores > Editar vendedor.'
         )
-
-        correo_admin = (
-            getattr(settings, 'ADMIN_RECOVERY_EMAIL', '')
-            or getattr(settings, 'EMAIL_HOST_USER', '')
+        mensaje_html = (
+            '<h2>Solicitud de recuperacion de contrase&ntilde;a</h2>'
+            '<p>Se recibio una solicitud de recuperacion de contrase&ntilde;a '
+            'desde el sistema.</p>'
+            '<ul>'
+            f'<li><strong>Correo ingresado:</strong> {escape(correo)}</li>'
+            f'<li><strong>Cuenta registrada:</strong> {"Si" if existe_cuenta else "No"}</li>'
+            f'<li><strong>Usuario(s):</strong> {escape(usuarios_encontrados)}</li>'
+            f'<li><strong>Fecha y hora:</strong> {escape(fecha_solicitud)}</li>'
+            f'<li><strong>IP aproximada:</strong> {escape(ip_cliente)}</li>'
+            '</ul>'
+            '<p><strong>Enlace para cambiar contrase&ntilde;a:</strong><br>'
+            f'<a href="{escape(enlace_edicion)}">{escape(enlace_edicion)}</a></p>'
+            '<p>El usuario no recibio ningun correo automaticamente. '
+            'El administrador debe validar la solicitud y, si corresponde, '
+            'cambiar la contrase&ntilde;a desde Vendedores &gt; Editar vendedor.</p>'
         )
-        correo_remitente = (
-            getattr(settings, 'DEFAULT_FROM_EMAIL', '')
-            or getattr(settings, 'EMAIL_HOST_USER', '')
-        )
 
-        if not correo_admin or not correo_remitente:
+        correo_admin = getattr(settings, 'ADMIN_RECOVERY_EMAIL', '')
+
+        if not correo_admin:
             logger.error(
-                'No se pudo enviar recuperacion: falta ADMIN_RECOVERY_EMAIL, '
-                'DEFAULT_FROM_EMAIL o EMAIL_HOST_USER.'
+                'No se pudo enviar recuperacion: falta ADMIN_RECOVERY_EMAIL.'
             )
-            messages.error(
-                request,
-                'No se pudo enviar la solicitud en este momento. Contacta al administrador.'
-            )
-            return render(request, 'public/recuperar_contrasena.html')
+        else:
+            try:
+                enviar_correo_brevo(
+                    correo_admin,
+                    'Administrador',
+                    asunto,
+                    mensaje_html,
+                    mensaje,
+                )
+            except BrevoEmailError as error:
+                logger.exception(
+                    'Error enviando correo de recuperacion con Brevo: %s',
+                    error
+                )
 
-        try:
-            send_mail(
-                asunto,
-                mensaje,
-                correo_remitente,
-                [correo_admin],
-                fail_silently=False,
-            )
-        except (SMTPException, OSError, TimeoutError) as error:
-            logger.exception(
-                'Error enviando correo de recuperacion de contraseña: %s',
-                error
-            )
-            messages.error(
-                request,
-                'No se pudo enviar la solicitud en este momento. Intenta nuevamente o contacta al administrador.'
-            )
-            return render(request, 'public/recuperar_contrasena.html')
-
-        messages.success(
+        messages.info(
             request,
-            'Si el correo corresponde a una cuenta registrada, el administrador recibira tu solicitud.'
+            'Si el correo esta registrado, el administrador recibira tu solicitud.'
         )
         return redirect('recuperar_contrasena')
 
     return render(request, 'public/recuperar_contrasena.html')
+
+
+recuperarContrasena = recuperarContraseña
 
 @login_required
 @admin_required
